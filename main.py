@@ -5,7 +5,7 @@ from Tools import *  # import everything
 from Help import *
 import PySimpleGUI as sg
 
-myProjectVersion = "0.1.9"
+myProjectVersion = "0.1.11"
 
 
 def RunApp():
@@ -20,7 +20,7 @@ def RunApp():
     sg.set_options(element_padding=(0, 0))
 
     # ------ Menu Definition ------ #
-    menu_def = [['&File', ['Open file', 'Clear app_window', 'Settings', 'Exit']],
+    menu_def = [['&File', ['Open file', 'Clear display', 'Settings', 'Exit']],
                 ['&Edit', ['&Paste', ['None']], ],
                 ['&View'],
                 ['&Toolbar', ['DebugTool', 'MonitorTool', 'None']],
@@ -34,11 +34,20 @@ def RunApp():
     app_main_menu = sg.Menu(menu_def, tearoff=False, pad=(200, 1), key='-MAIN_MENU-')
     app_window_display = sg.Multiline(key='-OUT-', size=(80, 7))
 
-    # app_zigbee_tab = sg.Tab("Zigbee", key="-ZIGBEE-")
+    app_serial_port_tab_file_to_send = sg.Button("Load file to send", size=(19, 2), pad=(0, 10))
+    app_serial_port_tab_send_file = sg.Button("Send file", size=(11, 2), pad=(8, 0))
 
-    app_serial_port_tab_element = sg.Multiline(key='-test-', size=(80, 7))
+    app_serial_port_tab_read_to_file = sg.Button("Load file to read data", size=(24, 2), pad=(0, 10))
+    app_serial_port_tab_overwrite_file = sg.Button("File overwrite", size=(16, 2), pad=(8, 0))
+    app_serial_port_tab_append_file = sg.Button("Append file", size=(13, 2), pad=(0, 0))
 
-    app_serial_port_tab_layout = [[app_serial_port_tab_element]]
+    app_serial_port_tab_command = sg.Multiline(default_text=" Hello", key="-SERIAL_PORT_SEND_COMMAND-", size=(60, 5))
+    app_serial_port_tab_send_command = sg.Button("Send command", size=(14, 2), pad=(8, 0))
+
+    app_serial_port_tab_layout = [[app_serial_port_tab_file_to_send, app_serial_port_tab_send_file],
+                                  [app_serial_port_tab_command, app_serial_port_tab_send_command],
+                                  [app_serial_port_tab_read_to_file, app_serial_port_tab_overwrite_file,
+                                   app_serial_port_tab_append_file]]
 
     app_serial_port_tab = sg.Tab("Serial port", layout=app_serial_port_tab_layout, key="-SERIAL_PORT-")
 
@@ -94,12 +103,16 @@ def RunApp():
                 file.write("test writing")
                 f = 0
 
-        elif event == 'Clear app_window':
+        elif event == 'Clear display':
 
             app_window['-OUT-'].update('')  # clear app_window
 
         elif event == 'Settings':
             settings_tab()
+
+        elif event == "Send command":
+
+            serial_port_send_command(uart, "Test data")      # Test write
 
     if f == 0:  # close file which exists
 
@@ -112,3 +125,5 @@ def RunApp():
 RunApp()
 uart.close()  # when main program was finished and port was not closed, close it
 del uart
+
+

@@ -1,8 +1,5 @@
-import serial
+from SerialPort import *
 import PySimpleGUI as sg
-
-
-uart = serial.Serial()
 
 
 def settings_tab():
@@ -56,7 +53,7 @@ def settings_tab():
                     try:  # the code which may raise exception SerialException
                         uart.open()
 
-                    except serial.SerialException:  # if SerialException will occur, do the management action
+                    except SerialException:  # if SerialException will occur, do the management action
 
                         settings_window['settings window'].update('')  # clear window
                         settings_output.print("Something went wrong... \n The port cannot be opened")
