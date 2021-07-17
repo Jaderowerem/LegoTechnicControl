@@ -32,7 +32,9 @@ def serial_port_read_bytes():
 
 
 def serial_port_read_to_file(UART: Serial, file: _io.FileIO, num_bytes: int):
-
+    """
+        to add format of file
+        """
     if UART.isOpen():
 
         file.write(str(UART.read(num_bytes)))

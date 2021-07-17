@@ -7,7 +7,7 @@ from Help import *
 import PySimpleGUI as sg
 
 
-myProjectVersion = "0.1.12"
+myProjectVersion = "0.1.13"
 
 
 def RunApp():
@@ -116,7 +116,7 @@ def RunApp():
             """
             test code
             """
-            for i in range(1, 10, 1):
+            for i in range(0, 10, 1):
                 serial_port_send_command(uart, "TEST")
                 serial_port_read_to_file(uart, file_read_uart, 4)
                 time.sleep(1)
