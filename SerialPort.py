@@ -34,5 +34,5 @@ def serial_port_read_to_file(UART: Serial, file: _io.FileIO, num_bytes: int):
     num_bytes_read = file.write(UART.read(num_bytes))
     file.write(bytes('\n'.encode(encoding="ascii")))
 
-    print(num_bytes_read)
+    print(num_bytes_read)  # debug
     print("Ready")

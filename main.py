@@ -7,7 +7,7 @@ from Help import *
 import PySimpleGUI as sg
 
 
-myProjectVersion = "0.1.15"
+myProjectVersion = "0.1.16"
 
 
 def RunApp():
@@ -36,7 +36,7 @@ def RunApp():
     app_serial_port_tab_file_to_send = sg.Button("Load file to send", size=(19, 2), pad=(0, 10))
     app_serial_port_tab_send_file = sg.Button("Send file", size=(11, 2), pad=(8, 0))
 
-    app_serial_port_tab_read_to_file = sg.Button("Load file to read data", size=(24, 2), pad=(0, 10))
+    app_serial_port_tab_read_to_file = sg.Button("Load file to record data", size=(24, 2), pad=(0, 10))
     app_serial_port_tab_close_file = sg.Button("Close file", size=(16, 2), pad=(0, 0))
     app_serial_port_tab_read_data = sg.Button("Read data", size=(13, 2), pad=(8, 0))
 
@@ -110,9 +110,9 @@ def RunApp():
             """
             test
             """
-            serial_port_read_to_file(uart, file_read_uart, txd_data.__sizeof__())
+            # serial_port_read_to_file(uart, file_read_uart, txd_data.__sizeof__())
 
-        elif event == "Load file to read data":
+        elif event == "Load file to record data":
 
             file_read_uart_name = sg.popup_get_file('file to open', no_window=True)
 
