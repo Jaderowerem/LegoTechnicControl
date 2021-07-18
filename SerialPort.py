@@ -1,4 +1,3 @@
-
 import _io
 from serial import *
 
@@ -23,7 +22,7 @@ def serial_port_send_command(UART: Serial, data: str):
         data_to_send = data.encode(encoding="ascii", errors="replace")
         UART.write(data_to_send)
 
-    else:   # in the future, here, it would be possible to add statement raise exception
+    else:  # in the future, here, it would be possible to add statement raise exception
         pass
 
 
@@ -37,7 +36,10 @@ def serial_port_read_to_file(UART: Serial, file: _io.FileIO, num_bytes: int):
         """
     if UART.isOpen():
 
-        file.write(str(UART.read(num_bytes)))
+        data = UART.read(5)
+        file.write(data)
 
-    else:   # in the future, here, it would be possible to add statement raise exception
+    # file.write(str(UART.read(num_bytes)))   # test
+
+    else:  # in the future, here, it would be possible to add statement raise exception
         pass

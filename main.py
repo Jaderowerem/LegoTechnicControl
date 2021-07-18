@@ -7,7 +7,7 @@ from Help import *
 import PySimpleGUI as sg
 
 
-myProjectVersion = "0.1.13"
+myProjectVersion = "0.1.14"
 
 
 def RunApp():
@@ -107,7 +107,7 @@ def RunApp():
 
             try:
 
-                file_read_uart = open(file_read_uart_name, 'w')
+                file_read_uart = open(file_read_uart_name, 'wb')
 
             except OSError:
 
@@ -117,8 +117,8 @@ def RunApp():
             test code
             """
             for i in range(0, 10, 1):
-                serial_port_send_command(uart, "TEST")
-                serial_port_read_to_file(uart, file_read_uart, 4)
+                serial_port_send_command(uart, "TEST\n")
+                serial_port_read_to_file(uart, file_read_uart, 5)
                 time.sleep(1)
 
             file_read_uart.close()
