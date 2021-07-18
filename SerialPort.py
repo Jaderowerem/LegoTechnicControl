@@ -1,7 +1,7 @@
 import _io
 from serial import *
 
-uart = Serial()
+uart = Serial(bytesize=EIGHTBITS, timeout=1, write_timeout=2)
 
 """
 def serial_port_send_file(UART: Serial, file: _io):
@@ -18,12 +18,8 @@ def serial_port_send_command(UART: Serial, data: str):
     this function is used to transmit commands through serial port,
     it includes mechanism which encodes data as ASCII (bytes, b encoding)
     """
-    if UART.isOpen():
-        data_to_send = data.encode(encoding="ascii", errors="replace")
-        UART.write(data_to_send)
 
-    else:  # in the future, here, it would be possible to add statement raise exception
-        pass
+    UART.write(data.encode(encoding="ascii", errors="replace"))
 
 
 def serial_port_read_bytes():
@@ -34,12 +30,9 @@ def serial_port_read_to_file(UART: Serial, file: _io.FileIO, num_bytes: int):
     """
         to add format of file
         """
-    if UART.isOpen():
 
-        data = UART.read(5)
-        file.write(data)
+    num_bytes_read = file.write(UART.read(num_bytes))
+    file.write(bytes('\n'.encode(encoding="ascii")))
 
-    # file.write(str(UART.read(num_bytes)))   # test
-
-    else:  # in the future, here, it would be possible to add statement raise exception
-        pass
+    print(num_bytes_read)
+    print("Ready")

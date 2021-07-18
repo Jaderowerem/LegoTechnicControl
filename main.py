@@ -7,7 +7,7 @@ from Help import *
 import PySimpleGUI as sg
 
 
-myProjectVersion = "0.1.14"
+myProjectVersion = "0.1.15"
 
 
 def RunApp():
@@ -37,8 +37,8 @@ def RunApp():
     app_serial_port_tab_send_file = sg.Button("Send file", size=(11, 2), pad=(8, 0))
 
     app_serial_port_tab_read_to_file = sg.Button("Load file to read data", size=(24, 2), pad=(0, 10))
-    app_serial_port_tab_overwrite_file = sg.Button("File overwrite", size=(16, 2), pad=(8, 0))
-    app_serial_port_tab_append_file = sg.Button("Append file", size=(13, 2), pad=(0, 0))
+    app_serial_port_tab_close_file = sg.Button("Close file", size=(16, 2), pad=(0, 0))
+    app_serial_port_tab_read_data = sg.Button("Read data", size=(13, 2), pad=(8, 0))
 
     app_serial_port_tab_command_input = sg.Multiline(default_text=" Hello", key="-SERIAL_PORT_SEND_COMMAND-",
                                                      size=(60, 1))
@@ -46,8 +46,8 @@ def RunApp():
 
     app_serial_port_tab_layout = [[app_serial_port_tab_file_to_send, app_serial_port_tab_send_file],
                                   [app_serial_port_tab_command_input, app_serial_port_tab_send_command],
-                                  [app_serial_port_tab_read_to_file, app_serial_port_tab_overwrite_file,
-                                   app_serial_port_tab_append_file]]
+                                  [app_serial_port_tab_read_to_file, app_serial_port_tab_read_data,
+                                   app_serial_port_tab_close_file]]
 
     app_serial_port_tab = sg.Tab("Serial port", layout=app_serial_port_tab_layout, key="-SERIAL_PORT-")
 
@@ -72,13 +72,18 @@ def RunApp():
     while True:
 
         event, values = app_window.read()
+
         if event in (sg.WIN_CLOSED, 'Exit'):
             break
 
         # ------ Process menu choices ------ #
 
-        app_window_display.print("event: ", event)
-        app_window_display.print("values: ", values)
+        """
+        app_window_display.print() use only to debug UI when other features are disabled like
+        for example data transmission via UART, etc, otherwise application is goiing to work unstable
+        """
+        # app_window_display.print("event: ", event)  # debug
+        # app_window_display.print("values: ", values) # debug
 
         if event == 'About':
             app_window.disappear()
@@ -99,7 +104,13 @@ def RunApp():
 
         elif event == "Send command":
 
-            serial_port_send_command(uart, app_serial_port_tab_command_input.get())
+            txd_data = app_serial_port_tab_command_input.get()
+            serial_port_send_command(uart, txd_data)
+
+            """
+            test
+            """
+            serial_port_read_to_file(uart, file_read_uart, txd_data.__sizeof__())
 
         elif event == "Load file to read data":
 
@@ -113,20 +124,32 @@ def RunApp():
 
                 app_window_display.print("The file cannot be opened")
 
-            """
-            test code
-            """
-            for i in range(0, 10, 1):
-                serial_port_send_command(uart, "TEST\n")
-                serial_port_read_to_file(uart, file_read_uart, 5)
-                time.sleep(1)
+        elif event == "Read data":
+
+            serial_port_read_to_file(uart, file_read_uart, txd_data.__sizeof__())
+
+        elif event == "Close file":
 
             file_read_uart.close()
 
     app_window.close()
     del app_window
-
+    del app_main_menu
+    del app_window_display
+    del app_serial_port_tab_file_to_send
+    del app_serial_port_tab_send_file
+    del app_serial_port_tab_read_to_file
+    del app_serial_port_tab_close_file
+    del app_serial_port_tab_read_data
+    del app_serial_port_tab_command_input
+    del app_serial_port_tab_send_command
+    del app_serial_port_tab_layout
+    del app_serial_port_tab
+    del layout_tabs
+    del app_tab_group
+    del app_main_layout
 
 RunApp()
 uart.close()  # when main program was finished and port was not closed, close it
 del uart
+

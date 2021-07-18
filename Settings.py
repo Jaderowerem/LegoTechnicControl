@@ -3,6 +3,7 @@ import PySimpleGUI as sg
 
 
 def settings_tab():
+
     settings_com_ports = ['COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7',
                           'COM8', 'COM9', 'COM10', 'COM11', 'COM12', 'COM13', 'COM14',
                           'COM15', 'COM16', 'COM17', 'COM18', 'COM19']
@@ -78,3 +79,6 @@ def settings_tab():
 
     settings_window.close()
     del settings_window  # destructor, deletes setting_window object
+    del settings_output
+    del settings_layout
+
