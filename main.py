@@ -6,7 +6,7 @@ from Tools import *  # import everything
 from Help import *
 import PySimpleGUI as sg
 
-myProjectVersion = "0.1.18"
+myProjectVersion = "0.1.19"
 
 
 def runApp():
@@ -47,14 +47,14 @@ def runApp():
     1.
     """
     app_serial_port_tab_file_section = sg.Text(" File ", pad=(0, 10))
-    app_serial_port_tab_file_to_send = sg.Button("FILE TO SEND", size=(14, 2), pad=(10, 10))
-    app_serial_port_tab_send_file = sg.Button("SEND FILE", size=(12, 2), pad=(10, 0))
-    app_serial_port_tab_file_to_record = sg.Button("FILE TO RECORD DATA", size=(22, 2), pad=(0, 0))
-    app_serial_port_tab_read_to_file = sg.Button("READ TO FILE", size=(14, 2), pad=(0, 0))
-    app_serial_port_tab_close_file = sg.Button("CLOSE FILE", size=(12, 2), pad=(10, 0))
+    app_serial_port_tab_file_to_send = sg.Button("FILE TO SEND", size=(14, 1), pad=(10, 10))
+    app_serial_port_tab_send_file = sg.Button("SEND FILE", size=(12, 1), pad=(10, 0))
+    app_serial_port_tab_file_to_record = sg.Button("FILE TO RECORD DATA", size=(22, 1), pad=(0, 0))
+    app_serial_port_tab_read_to_file = sg.Button("READ TO FILE", size=(14, 1), pad=(0, 0))
+    app_serial_port_tab_close_file = sg.Button("CLOSE FILE", size=(12, 1), pad=(10, 0))
     app_serial_port_tab_message_section = sg.Text(" Message ", pad=(0, 10))
-    app_serial_port_tab_send_message = sg.Button("SEND", size=(12, 2), pad=(10, 0))
-    app_serial_port_tab_read = sg.Button("READ", size=(12, 2), pad=(0, 0))
+    app_serial_port_tab_send_message = sg.Button("SEND", size=(12, 1), pad=(10, 0))
+    app_serial_port_tab_read = sg.Button("READ", size=(12, 1), pad=(0, 0))
 
     zigbee_serial_ports = ['COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7',
                            'COM8', 'COM9', 'COM10', 'COM11', 'COM12', 'COM13', 'COM14',
@@ -73,28 +73,23 @@ def runApp():
     app_zigbee_tab_signal_channel = sg.Listbox(zigbee_signal_channel, default_values=['1'], size=(7, 5),
                                                enable_events=True, pad=(10, 0))
 
-    app_zigbee_tab_panid_input = sg.Multiline(key='-PANID-', size=(15, 2), pad=(30, 0))
+    app_zigbee_tab_panid_input = sg.Input(key='-PANID-', size=(10, 1), pad=(30, 0))
+    app_zigbee_button_menu_commands = ["UNUSED", ["SET PORT", "SET CHANNEL", "SET PANID", "ALL INFO",
+                                                  "CHANNEL", "SELF SHORT ADDRESS", "SELF IEEE ADDRESS", "RESET",
+                                                  "SERIAL INFO", "SELF PANID", "PARENT SHORT ADDRESS",
+                                                  "PARENT IEEE ADDRESS", "DEFAULT SETTINGS"]]
 
-    app_zigbee_tab_serial_set_button = sg.Button("SET PORT", size=(9, 2), pad=(50, 10))
-    app_zigbee_tab_sig_channel_set_button = sg.Button("SET CHANNEL", size=(12, 2), pad=(10, 10))
-    app_zigbee_tab_panid_set_button = sg.Button("SET PANID", size=(11, 2), pad=(20, 10))
-    app_zigbee_tab_commands_1 = sg.Button("1", size=(10, 2), pad=(10, 0))
-    app_zigbee_tab_commands_2 = sg.Button("2", size=(10, 2), pad=(0, 0))
-    app_zigbee_tab_commands_3 = sg.Button("3", size=(10, 2), pad=(10, 0))
-    app_zigbee_tab_commands_4 = sg.Button("4", size=(10, 2), pad=(0, 0))
-    app_zigbee_tab_commands_5 = sg.Button("5", size=(10, 2), pad=(10, 0))
-    app_zigbee_tab_commands_6 = sg.Button("6", size=(10, 2), pad=(10, 10))
-    app_zigbee_tab_commands_7 = sg.Button("7", size=(10, 2), pad=(0, 10))
-    app_zigbee_tab_commands_8 = sg.Button("8", size=(10, 2), pad=(10, 10))
-    app_zigbee_tab_commands_9 = sg.Button("9", size=(10, 2), pad=(0, 10))
-    app_zigbee_tab_commands_10 = sg.Button("10", size=(10, 2), pad=(10, 10))
+    app_zigbee_tab_commands = sg.ButtonMenu("ZigBee COMMANDS", menu_def=app_zigbee_button_menu_commands,
+                                            pad=(10, 0))
+
+    app_zigbee_tab_send_commands = sg.Button("SEND", pad=(10, 0))
 
     app_zigbee_tab_serial_channel_section = sg.Text(" Serial channel ", pad=(0, 10))
     app_zigbee_tab_serial_baudrate_section = sg.Text(" Baud rate ", pad=(20, 10))
     app_zigbee_tab_signal_channel_section = sg.Text(" Signal channel ", pad=(0, 0))
     app_zigbee_tab_signal_panid_section = sg.Text(" PANID ", pad=(30, 0))
     app_zigbee_tab_signal_panid_info = sg.Text(" Set address 0x0000 - 0x3FFE ", pad=(0, 0))
-    app_zigbee_tab_commands_section = sg.Text(" Commands ", pad=(0, 10))
+    app_zigbee_tab_commands_section = sg.Text(" Commands ", pad=(0, 20))
 
     """
     2.
@@ -112,15 +107,8 @@ def runApp():
                               app_zigbee_tab_signal_panid_section],
                              [app_zigbee_tab_serial_channel, app_zigbee_tab_serial_baudrate,
                               app_zigbee_tab_signal_channel, app_zigbee_tab_panid_input,
-                              app_zigbee_tab_signal_panid_info],
-                             [app_zigbee_tab_serial_set_button,
-                              app_zigbee_tab_sig_channel_set_button,
-                              app_zigbee_tab_panid_set_button],
-                             [app_zigbee_tab_commands_section],
-                             [app_zigbee_tab_commands_1, app_zigbee_tab_commands_2, app_zigbee_tab_commands_3,
-                              app_zigbee_tab_commands_4, app_zigbee_tab_commands_5],
-                             [app_zigbee_tab_commands_6, app_zigbee_tab_commands_7, app_zigbee_tab_commands_8,
-                              app_zigbee_tab_commands_9, app_zigbee_tab_commands_10]]
+                              app_zigbee_tab_signal_panid_info], [app_zigbee_tab_commands_section],
+                             [app_zigbee_tab_commands, app_zigbee_tab_send_commands]]
     """
     3.
     """
