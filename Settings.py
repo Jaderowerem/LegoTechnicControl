@@ -11,13 +11,13 @@ def settings_tab():
 
     settings_output = sg.Multiline(key='settings window', size=(50, 2))
 
-    settings_serial_port_layout = [[sg.Text('Serial ports'), sg.Text('Baud rate', pad=(20, 10))],
+    settings_serial_port_layout = [[sg.Text('Serial ports', pad=(10, 0)), sg.Text('Baud rate', pad=(20, 10))],
                                    [sg.Listbox(settings_com_ports, default_values=['COM1'], size=(7, 5),
-                                               enable_events=True, pad=(0, 10)),
+                                               enable_events=True, pad=(10, 10)),
                                     sg.Listbox(settings_baudrate, default_values=['9600'], size=(7, 5),
                                                enable_events=True, pad=(20, 10))],
-                                   [sg.Button('OPEN PORT', pad=(0, 20)), sg.Button('CLOSE PORT', pad=(20, 20)),
-                                    sg.Button("READ SETTINGS")],
+                                   [sg.Button('OPEN PORT', pad=(10, 20)), sg.Button('CLOSE PORT', pad=(0, 20)),
+                                    sg.Button("READ SETTINGS", pad=(10, 0))],
                                    [settings_output]]
 
     settings_serial_port_tab = sg.Tab("Serial port", layout=settings_serial_port_layout)
