@@ -6,7 +6,7 @@ from Tools import *  # import everything
 from Help import *
 import PySimpleGUI as sg
 
-myProjectVersion = "0.1.19"
+myProjectVersion = "0.1.20"
 
 
 def runApp():
@@ -51,7 +51,7 @@ def runApp():
     app_serial_port_tab_send_file = sg.Button("SEND FILE", size=(12, 1), pad=(10, 0))
     app_serial_port_tab_file_to_record = sg.Button("FILE TO RECORD DATA", size=(22, 1), pad=(0, 0))
     app_serial_port_tab_read_to_file = sg.Button("READ TO FILE", size=(14, 1), pad=(0, 0))
-    app_serial_port_tab_close_file = sg.Button("CLOSE FILE", size=(12, 1), pad=(10, 0))
+    app_serial_port_tab_close_file = sg.Button("CLOSE FILE", size=(15, 1), pad=(10, 0))
     app_serial_port_tab_message_section = sg.Text(" Message ", pad=(0, 10))
     app_serial_port_tab_send_message = sg.Button("SEND", size=(12, 1), pad=(10, 0))
     app_serial_port_tab_read = sg.Button("READ", size=(12, 1), pad=(0, 0))
@@ -73,7 +73,7 @@ def runApp():
     app_zigbee_tab_signal_channel = sg.Listbox(zigbee_signal_channel, default_values=['1'], size=(7, 5),
                                                enable_events=True, pad=(10, 0))
 
-    app_zigbee_tab_panid_input = sg.Input(key='-PANID-', size=(10, 1), pad=(30, 0))
+    app_zigbee_tab_panid_input = sg.Input(key='-PANID-', size=(10, 1), pad=((40, 0), (0, 60)))
     app_zigbee_button_menu_commands = ["UNUSED", ["SET PORT", "SET CHANNEL", "SET PANID", "ALL INFO",
                                                   "CHANNEL", "SELF SHORT ADDRESS", "SELF IEEE ADDRESS", "RESET",
                                                   "SERIAL INFO", "SELF PANID", "PARENT SHORT ADDRESS",
@@ -88,7 +88,7 @@ def runApp():
     app_zigbee_tab_serial_baudrate_section = sg.Text(" Baud rate ", pad=(20, 10))
     app_zigbee_tab_signal_channel_section = sg.Text(" Signal channel ", pad=(0, 0))
     app_zigbee_tab_signal_panid_section = sg.Text(" PANID ", pad=(30, 0))
-    app_zigbee_tab_signal_panid_info = sg.Text(" Set address 0x0000 - 0x3FFE ", pad=(0, 0))
+    app_zigbee_tab_signal_panid_info = sg.Text(" Set address 0x0000 - 0x3FFE ", pad=((0, 0), (0, 60)))
     app_zigbee_tab_commands_section = sg.Text(" Commands ", pad=(0, 20))
 
     """
@@ -140,7 +140,7 @@ def runApp():
     app_window = sg.Window('LEGO Technic PC control',
                            app_main_layout,
                            default_element_size=(12, 1),
-                           default_button_element_size=(12, 1), size=(1000, 700))
+                           default_button_element_size=(12, 1), size=(800, 600))
 
     # ------ Loop & Process button menu choices ------ #
     while True:
