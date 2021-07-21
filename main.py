@@ -2,11 +2,12 @@ import PySimpleGUI
 import time
 
 from Settings import *  # include all namespace from Settings.py file
-from Tools import *  # import everything
-from Help import *
+from Tools import *  # from Tools import everything
+from Help import *  # from Help import everything
+from Zigbee import *    # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.2.0"
+myProjectVersion = "0.2.1"
 
 
 def runApp():
@@ -59,7 +60,7 @@ def runApp():
 
     app_serial_port_devices = ["Device A", "Device B"]
 
-    app_serial_port_tab_devices = sg.Listbox(app_serial_port_devices, default_values=["A"], size=(9, 3),
+    app_serial_port_tab_devices = sg.Listbox(app_serial_port_devices, default_values=["Device A"], size=(9, 3),
                                              enable_events=True, pad=((40, 10), (20, 0)))
 
     zigbee_serial_ports = ['COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7',
@@ -68,7 +69,8 @@ def runApp():
 
     zigbee_baudrate = ['9600', '14400', '19200', '38400', '57600', '115200']
 
-    zigbee_signal_channel = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
+    zigbee_signal_channel = ['11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21',
+                             '22', '23', '24', '25', '26']
 
     app_zigbee_tab_serial_channel = sg.Listbox(zigbee_serial_ports, default_values=['COM1'], size=(7, 5),
                                                enable_events=True, pad=(10, 0))
@@ -76,7 +78,7 @@ def runApp():
     app_zigbee_tab_serial_baudrate = sg.Listbox(zigbee_baudrate, default_values=['9600'], size=(7, 5),
                                                 enable_events=True, pad=(20, 0))
 
-    app_zigbee_tab_signal_channel = sg.Listbox(zigbee_signal_channel, default_values=['1'], size=(7, 5),
+    app_zigbee_tab_signal_channel = sg.Listbox(zigbee_signal_channel, default_values=['11'], size=(7, 5),
                                                enable_events=True, pad=(10, 0))
 
     app_zigbee_tab_panid_input = sg.Input(key='-PANID-', size=(10, 1), pad=((40, 0), (0, 60)))
@@ -220,6 +222,19 @@ def runApp():
         elif event == "CLOSE FILE":
 
             file_read_uart.close()
+
+        """
+        ZigBee tab >>> add code here <<<
+        """
+
+        """
+        Structure for each packet after choosing from ZigBee commands button menu
+
+        app_window_transmit.print(all_config_get)
+        txd_data = all_config_get
+        
+        for "set commands" add additional actions like adding uart parameters, PANID address, etc
+        """
 
     app_window.close()
     del app_window
