@@ -6,7 +6,7 @@ from Tools import *  # import everything
 from Help import *
 import PySimpleGUI as sg
 
-myProjectVersion = "0.1.21"
+myProjectVersion = "0.2.0"
 
 
 def runApp():
@@ -92,7 +92,7 @@ def runApp():
 
     app_zigbee_devices = ["Device A", "Device B"]
 
-    app_zigbee_tab_devices = sg.Listbox(app_zigbee_devices, default_values=["A"], size=(9, 3),
+    app_zigbee_tab_devices = sg.Listbox(app_zigbee_devices, default_values=["Device A"], size=(9, 3),
                                         enable_events=True, pad=((110, 0), (0, 20)))
 
     app_zigbee_tab_serial_channel_section = sg.Text(" Serial channel ", pad=(0, 10))
@@ -169,10 +169,12 @@ def runApp():
 
         """
         app_window_receive.print() use only to debug UI when other features are disabled like
-        for example data transmission via UART, etc, otherwise application is goiing to work unstable
+        for example data transmission via UART, etc, otherwise application is going to work unstable
         """
         # app_window_receive.print("event: ", event)  # debug
         # app_window_receive.print("values: ", values) # debug
+
+        device = ''.join(values[0])     # convert tuple into string, get proper device- A or B
 
         if event == 'About':
             app_window.disappear()
@@ -191,7 +193,7 @@ def runApp():
         elif event == "SEND":
 
             txd_data = app_window_transmit.get()
-            serial_port_send_command(uart_A, txd_data)
+            serial_port_send_command(uart[device], txd_data)
 
         elif event == "FILE TO RECORD DATA":
 
@@ -207,11 +209,13 @@ def runApp():
 
         elif event == "READ TO FILE":
 
-            serial_port_read_to_file(uart_A, file_read_uart, txd_data.__sizeof__())
+            serial_port_read_to_file(uart[device], file_read_uart, txd_data.__sizeof__())
+            pass
 
         elif event == "READ":
 
-            serial_port_read_bytes(uart_A, app_window_receive, txd_data.__sizeof__())
+            serial_port_read_bytes(uart[device], app_window_receive, txd_data.__sizeof__())
+            pass
 
         elif event == "CLOSE FILE":
 
@@ -222,5 +226,16 @@ def runApp():
 
 
 runApp()
-uart_A.close()  # when main program was finished and port was not closed, close it
-del uart_A
+
+if uart["Device A"].isOpen():
+
+    uart["Device A"].close()  # when main program was finished and port was not closed, close it
+    del uart["Device A"]
+
+if uart["Device B"].isOpen():
+
+    uart["Device B"].close()  # when main program was finished and port was not closed, close it
+    del uart["Device B"]
+
+
+

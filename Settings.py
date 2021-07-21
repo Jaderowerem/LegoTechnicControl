@@ -2,6 +2,71 @@ from SerialPort import *
 import PySimpleGUI as sg
 
 
+def serial_port_config(gui_event: tuple, gui_values: tuple, window: PySimpleGUI.Window,
+                       text_output: PySimpleGUI.Multiline):
+
+    com_port = ''.join(gui_values[0])  # convert tuple into string
+    baud = ''.join(gui_values[1])  # convert tuple into string
+    device = ''.join(gui_values[2])  # convert tuple into string
+
+    if gui_event == 'OPEN PORT':
+
+        if uart[device].isOpen():  # if port is already opened, do not try to open it once again
+
+            if uart[device].port == com_port:  # when selected setting covers port which is already opened
+
+                window['settings window'].update('')
+                text_output.print("The port is already opened")
+
+            else:  # when other port is already opened, and someone is trying to open another one
+
+                window['settings window'].update('')  # clear window
+                text_output.print(uart[device].port, "is already opened, do not try to open another port")
+
+        else:  # the port is not under usage, it can be opened
+
+            uart[device].port = com_port
+            uart[device].baudrate = int(baud)  # convert string into number
+
+            try:  # the code which may raise exception SerialException
+                uart[device].open()
+
+            except SerialException:  # if SerialException will occur, do the management action
+
+                window['settings window'].update('')  # clear window
+                text_output.print("Something went wrong... \n The port cannot be opened")
+
+            else:  # otherwise, inform that everything went along nicely
+
+                window['settings window'].update('')  # clear window
+                text_output.print("The port has been successfully opened")
+
+    if gui_event == 'CLOSE PORT':
+
+        if uart[device].isOpen():
+
+            uart[device].close()
+            window['settings window'].update('')
+            text_output.print(uart[device].port, " has just been closed")
+
+        else:
+
+            window['settings window'].update('')
+            text_output.print("It's difficult to close port which is not even opened ... :(")
+
+    if gui_event == "READ SETTINGS":
+
+        if uart[device].isOpen():
+            window['settings window'].update('')
+            text_output.print(device, ">> Port: ", uart[device].port, ", Baud rate: ", uart[device].baudrate,
+                              ", Data bits: ", uart[device].bytesize, ", Parity: ", uart[device].parity, ", Stop bits: "
+                              , uart[device].stopbits, ", Timeout [sec] : ", uart[device].timeout)
+        else:
+
+            window['settings window'].update('')
+            text_output.print("No port is currently opened")
+
+
 def settings_tab():
     settings_com_ports = ['COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7',
                           'COM8', 'COM9', 'COM10', 'COM11', 'COM12', 'COM13', 'COM14',
@@ -19,7 +84,7 @@ def settings_tab():
                                                enable_events=True, pad=(10, 10)),
                                     sg.Listbox(settings_baudrate, default_values=['9600'], size=(7, 5),
                                                enable_events=True, pad=(20, 10)),
-                                    sg.Listbox(settings_devices, default_values=["A"], size=(9, 3),
+                                    sg.Listbox(settings_devices, default_values=["Device A"], size=(9, 3),
                                                enable_events=True, pad=((10, 10), (0, 30)))],
                                    [sg.Button('OPEN PORT', pad=(10, 20)), sg.Button('CLOSE PORT', pad=(0, 20)),
                                     sg.Button("READ SETTINGS", pad=(10, 0))],
@@ -56,66 +121,7 @@ def settings_tab():
 
         else:
 
-            com_port = ''.join(settings_values[0])  # convert tuple into string
-            baud = ''.join(settings_values[1])  # convert tuple into string
-            device = ''.join(settings_values[2])
-
-            if settings_event == 'OPEN PORT':
-
-                if uart_A.isOpen():  # if port is already opened, do not try to open it once again
-
-                    if uart_A.port == com_port:  # when selected setting covers port which is already opened
-
-                        settings_window['settings window'].update('')
-                        settings_output.print("The port is already opened")
-
-                    else:  # when other port is already opened, and someone is trying to open another one
-
-                        settings_window['settings window'].update('')  # clear window
-                        settings_output.print(uart_A.port, "is already opened, do not try to open another port")
-
-                else:  # the port is not under usage, it can be opened
-
-                    uart_A.port = com_port
-                    uart_A.baudrate = int(baud)  # convert string into number
-
-                    try:  # the code which may raise exception SerialException
-                        uart_A.open()
-
-                    except SerialException:  # if SerialException will occur, do the management action
-
-                        settings_window['settings window'].update('')  # clear window
-                        settings_output.print("Something went wrong... \n The port cannot be opened")
-
-                    else:  # otherwise, inform that everything went along nicely
-
-                        settings_window['settings window'].update('')  # clear window
-                        settings_output.print("The port has been successfully opened")
-
-            if settings_event == 'CLOSE PORT':
-
-                if uart_A.isOpen():
-
-                    uart_A.close()
-                    settings_window['settings window'].update('')
-                    settings_output.print(uart_A.port, " has just been closed")
-
-                else:
-
-                    settings_window['settings window'].update('')
-                    settings_output.print("It's difficult to close port which is not even opened ... :(")
-
-            if settings_event == "READ SETTINGS":
-
-                if uart_A.isOpen():
-                    settings_window['settings window'].update('')
-                    settings_output.print("Port: ", uart_A.port, ", Baud rate: ", uart_A.baudrate, ", Data bits: ",
-                                          uart_A.bytesize, ", Parity: ", uart_A.parity, ", Stop bits: ", uart_A.stopbits,
-                                          ", Timeout [sec] : ", uart_A.timeout)
-                else:
-
-                    settings_window['settings window'].update('')
-                    settings_output.print("No port is currently opened")
+            serial_port_config(settings_event, settings_values, settings_window, settings_output)
 
     settings_window.close()
     del settings_window  # destructor, deletes setting_window object
