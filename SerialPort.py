@@ -2,16 +2,12 @@ import PySimpleGUI
 from serial import *
 from typing import BinaryIO
 
-uart = Serial(bytesize=EIGHTBITS, timeout=1, write_timeout=2)
+uart_A = Serial(bytesize=EIGHTBITS, timeout=1, write_timeout=2)     # device A
+uart_B = Serial(bytesize=EIGHTBITS, timeout=1, write_timeout=2)     # device B
 
-"""
-def serial_port_send_file(UART: Serial, file: _io):
-    num_bytes = file.__sizeof__()
-    UART.write(file, num_bytes)
-    
+
+def serial_port_send_file(ser: Serial, file: BinaryIO):
     pass
-
-"""
 
 
 def serial_port_send_command(ser: Serial, data: str):

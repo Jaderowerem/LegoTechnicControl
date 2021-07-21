@@ -9,13 +9,18 @@ def settings_tab():
 
     settings_baudrate = ['9600', '14400', '19200', '38400', '57600', '115200']
 
+    settings_devices = ["Device A", "Device B"]
+
     settings_output = sg.Multiline(key='settings window', size=(50, 2))
 
-    settings_serial_port_layout = [[sg.Text('Serial ports', pad=(10, 0)), sg.Text('Baud rate', pad=(20, 10))],
+    settings_serial_port_layout = [[sg.Text('Serial ports', pad=(10, 0)), sg.Text('Baud rate', pad=(20, 10)),
+                                    sg.Text('Device', pad=(20, 10))],
                                    [sg.Listbox(settings_com_ports, default_values=['COM1'], size=(7, 5),
                                                enable_events=True, pad=(10, 10)),
                                     sg.Listbox(settings_baudrate, default_values=['9600'], size=(7, 5),
-                                               enable_events=True, pad=(20, 10))],
+                                               enable_events=True, pad=(20, 10)),
+                                    sg.Listbox(settings_devices, default_values=["A"], size=(9, 3),
+                                               enable_events=True, pad=((10, 10), (0, 30)))],
                                    [sg.Button('OPEN PORT', pad=(10, 20)), sg.Button('CLOSE PORT', pad=(0, 20)),
                                     sg.Button("READ SETTINGS", pad=(10, 0))],
                                    [settings_output]]
@@ -53,12 +58,13 @@ def settings_tab():
 
             com_port = ''.join(settings_values[0])  # convert tuple into string
             baud = ''.join(settings_values[1])  # convert tuple into string
+            device = ''.join(settings_values[2])
 
             if settings_event == 'OPEN PORT':
 
-                if uart.isOpen():  # if port is already opened, do not try to open it once again
+                if uart_A.isOpen():  # if port is already opened, do not try to open it once again
 
-                    if uart.port == com_port:  # when selected setting covers port which is already opened
+                    if uart_A.port == com_port:  # when selected setting covers port which is already opened
 
                         settings_window['settings window'].update('')
                         settings_output.print("The port is already opened")
@@ -66,15 +72,15 @@ def settings_tab():
                     else:  # when other port is already opened, and someone is trying to open another one
 
                         settings_window['settings window'].update('')  # clear window
-                        settings_output.print(uart.port, "is already opened, do not try to open another port")
+                        settings_output.print(uart_A.port, "is already opened, do not try to open another port")
 
                 else:  # the port is not under usage, it can be opened
 
-                    uart.port = com_port
-                    uart.baudrate = int(baud)  # convert string into number
+                    uart_A.port = com_port
+                    uart_A.baudrate = int(baud)  # convert string into number
 
                     try:  # the code which may raise exception SerialException
-                        uart.open()
+                        uart_A.open()
 
                     except SerialException:  # if SerialException will occur, do the management action
 
@@ -88,11 +94,11 @@ def settings_tab():
 
             if settings_event == 'CLOSE PORT':
 
-                if uart.isOpen():
+                if uart_A.isOpen():
 
-                    uart.close()
+                    uart_A.close()
                     settings_window['settings window'].update('')
-                    settings_output.print(uart.port, " has just been closed")
+                    settings_output.print(uart_A.port, " has just been closed")
 
                 else:
 
@@ -101,11 +107,11 @@ def settings_tab():
 
             if settings_event == "READ SETTINGS":
 
-                if uart.isOpen():
+                if uart_A.isOpen():
                     settings_window['settings window'].update('')
-                    settings_output.print("Port: ", uart.port, ", Baud rate: ", uart.baudrate, ", Data bits: ",
-                                          uart.bytesize, ", Parity: ", uart.parity, ", Stop bits: ", uart.stopbits,
-                                          ", Timeout [sec] : ", uart.timeout)
+                    settings_output.print("Port: ", uart_A.port, ", Baud rate: ", uart_A.baudrate, ", Data bits: ",
+                                          uart_A.bytesize, ", Parity: ", uart_A.parity, ", Stop bits: ", uart_A.stopbits,
+                                          ", Timeout [sec] : ", uart_A.timeout)
                 else:
 
                     settings_window['settings window'].update('')

@@ -6,7 +6,7 @@ from Tools import *  # import everything
 from Help import *
 import PySimpleGUI as sg
 
-myProjectVersion = "0.1.20"
+myProjectVersion = "0.1.21"
 
 
 def runApp():
@@ -55,6 +55,12 @@ def runApp():
     app_serial_port_tab_message_section = sg.Text(" Message ", pad=(0, 10))
     app_serial_port_tab_send_message = sg.Button("SEND", size=(12, 1), pad=(10, 0))
     app_serial_port_tab_read = sg.Button("READ", size=(12, 1), pad=(0, 0))
+    app_serial_port_tab_devices_section = sg.Text(" Device ", pad=(220, 10))
+
+    app_serial_port_devices = ["Device A", "Device B"]
+
+    app_serial_port_tab_devices = sg.Listbox(app_serial_port_devices, default_values=["A"], size=(9, 3),
+                                             enable_events=True, pad=((40, 10), (20, 0)))
 
     zigbee_serial_ports = ['COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7',
                            'COM8', 'COM9', 'COM10', 'COM11', 'COM12', 'COM13', 'COM14',
@@ -84,12 +90,18 @@ def runApp():
 
     app_zigbee_tab_send_commands = sg.Button("SEND", pad=(10, 0))
 
+    app_zigbee_devices = ["Device A", "Device B"]
+
+    app_zigbee_tab_devices = sg.Listbox(app_zigbee_devices, default_values=["A"], size=(9, 3),
+                                        enable_events=True, pad=((110, 0), (0, 20)))
+
     app_zigbee_tab_serial_channel_section = sg.Text(" Serial channel ", pad=(0, 10))
     app_zigbee_tab_serial_baudrate_section = sg.Text(" Baud rate ", pad=(20, 10))
     app_zigbee_tab_signal_channel_section = sg.Text(" Signal channel ", pad=(0, 0))
     app_zigbee_tab_signal_panid_section = sg.Text(" PANID ", pad=(30, 0))
     app_zigbee_tab_signal_panid_info = sg.Text(" Set address 0x0000 - 0x3FFE ", pad=((0, 0), (0, 60)))
     app_zigbee_tab_commands_section = sg.Text(" Commands ", pad=(0, 20))
+    app_zigbee_tab_devices_section = sg.Text(" Device ", pad=((280, 0), (0, 0)))
 
     """
     2.
@@ -98,8 +110,9 @@ def runApp():
                                   [app_serial_port_tab_file_to_send, app_serial_port_tab_file_to_record,
                                    app_serial_port_tab_send_file, app_serial_port_tab_read_to_file,
                                    app_serial_port_tab_close_file],
-                                  [app_serial_port_tab_message_section],
-                                  [app_serial_port_tab_send_message, app_serial_port_tab_read],
+                                  [app_serial_port_tab_message_section, app_serial_port_tab_devices_section],
+                                  [app_serial_port_tab_send_message, app_serial_port_tab_read,
+                                   app_serial_port_tab_devices],
                                   ]
 
     app_zigbee_tab_layout = [[app_zigbee_tab_serial_channel_section, app_zigbee_tab_serial_baudrate_section,
@@ -107,8 +120,10 @@ def runApp():
                               app_zigbee_tab_signal_panid_section],
                              [app_zigbee_tab_serial_channel, app_zigbee_tab_serial_baudrate,
                               app_zigbee_tab_signal_channel, app_zigbee_tab_panid_input,
-                              app_zigbee_tab_signal_panid_info], [app_zigbee_tab_commands_section],
-                             [app_zigbee_tab_commands, app_zigbee_tab_send_commands]]
+                              app_zigbee_tab_signal_panid_info], [app_zigbee_tab_commands_section,
+                                                                  app_zigbee_tab_devices_section],
+                             [app_zigbee_tab_commands, app_zigbee_tab_send_commands,
+                              app_zigbee_tab_devices]]
     """
     3.
     """
@@ -176,7 +191,7 @@ def runApp():
         elif event == "SEND":
 
             txd_data = app_window_transmit.get()
-            serial_port_send_command(uart, txd_data)
+            serial_port_send_command(uart_A, txd_data)
 
         elif event == "FILE TO RECORD DATA":
 
@@ -192,11 +207,11 @@ def runApp():
 
         elif event == "READ TO FILE":
 
-            serial_port_read_to_file(uart, file_read_uart, txd_data.__sizeof__())
+            serial_port_read_to_file(uart_A, file_read_uart, txd_data.__sizeof__())
 
         elif event == "READ":
 
-            serial_port_read_bytes(uart, app_window_receive, txd_data.__sizeof__())
+            serial_port_read_bytes(uart_A, app_window_receive, txd_data.__sizeof__())
 
         elif event == "CLOSE FILE":
 
@@ -207,5 +222,5 @@ def runApp():
 
 
 runApp()
-uart.close()  # when main program was finished and port was not closed, close it
-del uart
+uart_A.close()  # when main program was finished and port was not closed, close it
+del uart_A
