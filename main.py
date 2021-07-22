@@ -7,7 +7,7 @@ from Help import *  # from Help import everything
 from Zigbee import *    # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.2.2"
+myProjectVersion = "0.2.3"
 
 
 def runApp():
@@ -33,7 +33,7 @@ def runApp():
     app_window_receive_text = sg.Text("Receive window", pad=(0, 5))
     app_window_receive = sg.Multiline(key='-RECEIVE-', size=(60, 6))
     app_window_transmit_text = sg.Text("Send window", pad=(0, 5))
-    app_window_transmit = sg.Multiline(key='-TRANSMIT-', size=(60, 1), pad=(0, 0))
+    app_window_transmit = sg.Input(key='-TRANSMIT-', size=(40, 1), pad=(0, 0))
 
     """
     Creating tab, elements inside tab and setting layout
