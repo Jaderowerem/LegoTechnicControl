@@ -1,20 +1,77 @@
+from Settings import *
 
-restart_module_set = "AT+RESTART"
-factory_settings_set = "AT+RESET"
-serial_port_set = "AT+SETUART"     # this one must be modified in main.py adding uart parameters
-channel_set = "AT+SETCHN"   # this one must be modified in main.py adding channel number 11 - 26
-panid_set = "AT+SETPANID"   # in main.py add PANID address from input window
-all_config_get = "AT+GETCFG"
-serial_port_get = "AT+GETUART"
-channel_get = "AT+GETCHN"
-panid_get = "AT+GETPANID"
-short_addr_device_get = "AT+GETADDR"
-short_addr_parent_get = "AT+GETFADDR"
-ieee_addr_device_get = "AT+GETIEEE"
-ieee_addr_parent_get = "AT+GETFIEEE"
+"""
+zigbee_commands_set is equivalent to app_zigbee_button_menu_commands in main.py
+to get ZigBee command, values- it is a dictionary
+
+>> zigbee_commands_set[values["ZIGBEE_COMMAND"]]
+"""
+zigbee_commands_set = {
+    "RESTART MODULE": "AT+RESTART",
+    "SET FACTORY SETTINGS": "AT+RESET",
+    "SET SERIAL PORT": "AT+SETUART",
+    "SET SIGNAL CHANNEL": "AT+SETCHN",
+    "SET PANID": "AT+SETPANID",
+    "GET CONFIGURATION": "AT+GETCFG",
+    "GET SERIAL PORT": "AT+GETUART",
+    "GET SIGNAL CHANNEL": "AT+GETCHN",
+    "GET PANID": "AT+GETPANID",
+    "GET SHORT ADDRESS OF THE DEVICE": "AT+GETADDR",
+    "GET SHORT PARENT ADDRESS": "AT+GETFADDR",
+    "GET DEVICE IEEE ADDRESS": "AT+GETIEEE",
+    "GET PARENT IEEE ADDRESS": "AT+GETFIEEE"
+}
+
+"""
+manual operations below
+"""
 
 
+def get_zigbee_command(gui_events: tuple, gui_values: tuple, text_output: PySimpleGUI.Multiline):
+    command = zigbee_commands_set[gui_values["ZIGBEE_COMMAND"]]
 
+    if command == zigbee_commands_set["SET FACTORY SETTINGS"]:
+        text_output.print(command)
 
+    elif command == zigbee_commands_set["RESTART MODULE"]:
+        text_output.print(command)
 
+    elif command == zigbee_commands_set["GET CONFIGURATION"]:
+        text_output.print(command)
 
+    elif command == zigbee_commands_set["GET SERIAL PORT"]:
+        text_output.print(command)
+
+    elif command == zigbee_commands_set["GET SIGNAL CHANNEL"]:
+        text_output.print(command)
+
+    elif command == zigbee_commands_set["GET PANID"]:
+        text_output.print(command)
+
+    elif command == zigbee_commands_set["GET SHORT ADDRESS OF THE DEVICE"]:
+        text_output.print(command)
+
+    elif command == zigbee_commands_set["GET SHORT PARENT ADDRESS"]:
+        text_output.print(command)
+
+    elif command == zigbee_commands_set["GET DEVICE IEEE ADDRESS"]:
+        text_output.print(command)
+
+    elif command == zigbee_commands_set["GET PARENT IEEE ADDRESS"]:
+        text_output.print(command)
+
+    elif command == zigbee_commands_set["SET SIGNAL CHANNEL"]:
+
+        channel = "".join(gui_values["ZIGBEE_SETTING_CHANNEL"])
+        command = command + " " + channel
+        text_output.print(command)
+
+    elif command == zigbee_commands_set["SET PANID"]:
+
+        panid = "".join(gui_values["ZIGBEE_SET_PANID"])     # convert list into string
+        command = command + " " + panid
+        text_output.print(command)
+
+    elif command == zigbee_commands_set["SET SERIAL PORT"]:
+
+        pass

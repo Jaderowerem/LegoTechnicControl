@@ -5,9 +5,9 @@ import PySimpleGUI as sg
 def serial_port_config(gui_event: tuple, gui_values: tuple, window: PySimpleGUI.Window,
                        text_output: PySimpleGUI.Multiline):
 
-    com_port = ''.join(gui_values[0])  # convert tuple into string
-    baud = ''.join(gui_values[1])  # convert tuple into string
-    device = ''.join(gui_values[2])  # convert tuple into string
+    com_port = ''.join(gui_values[0])  # converts tuple or list into string
+    baud = ''.join(gui_values[1])  # converts tuple or list into string
+    device = ''.join(gui_values[2])  # converts tuple or list into string
 
     if gui_event == 'OPEN PORT':
 
@@ -68,7 +68,7 @@ def serial_port_config(gui_event: tuple, gui_values: tuple, window: PySimpleGUI.
 
 
 def settings_tab():
-    settings_com_ports = ['COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7',
+    settings_com_ports = ['COM0', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7',
                           'COM8', 'COM9', 'COM10', 'COM11', 'COM12', 'COM13', 'COM14',
                           'COM15', 'COM16', 'COM17', 'COM18', 'COM19']
 
@@ -80,7 +80,7 @@ def settings_tab():
 
     settings_serial_port_layout = [[sg.Text('Serial ports', pad=(10, 0)), sg.Text('Baud rate', pad=(20, 10)),
                                     sg.Text('Device', pad=(20, 10))],
-                                   [sg.Listbox(settings_com_ports, default_values=['COM1'], size=(7, 5),
+                                   [sg.Listbox(settings_com_ports, default_values=['COM0'], size=(7, 5),
                                                enable_events=True, pad=(10, 10)),
                                     sg.Listbox(settings_baudrate, default_values=['9600'], size=(7, 5),
                                                enable_events=True, pad=(20, 10)),
