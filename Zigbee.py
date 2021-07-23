@@ -19,15 +19,13 @@ zigbee_commands_set = {
     "GET SHORT ADDRESS OF THE DEVICE": "AT+GETADDR",
     "GET SHORT PARENT ADDRESS": "AT+GETFADDR",
     "GET DEVICE IEEE ADDRESS": "AT+GETIEEE",
-    "GET PARENT IEEE ADDRESS": "AT+GETFIEEE"
+    "GET PARENT IEEE ADDRESS": "AT+GETFIEEE",
+    "PACKET FROM MODULE A TO B": "P2P",
+    "PACKET FROM MODULE B TO A": "P2P "     # adding space to differ packets between sending from A to B and from B to A
 }
 
-"""
-manual operations below
-"""
 
-
-def get_zigbee_command(gui_events: tuple, gui_values: tuple, text_output: PySimpleGUI.Multiline):
+def get_zigbee_command(gui_values: tuple, text_output: PySimpleGUI.Multiline):
     command = zigbee_commands_set[gui_values["ZIGBEE_COMMAND"]]
 
     if command == zigbee_commands_set["SET FACTORY SETTINGS"]:
@@ -75,3 +73,15 @@ def get_zigbee_command(gui_events: tuple, gui_values: tuple, text_output: PySimp
     elif command == zigbee_commands_set["SET SERIAL PORT"]:
 
         pass
+
+    elif command == zigbee_commands_set["PACKET FROM MODULE A TO B"]:
+
+        addrBmodule = "".join(gui_values["ZIGBEE_ADDR_B"])
+        command = command + " " + addrBmodule
+        text_output.update(command)
+
+    elif command == zigbee_commands_set["PACKET FROM MODULE B TO A"]:
+
+        addrAmodule = "".join(gui_values["ZIGBEE_ADDR_A"])
+        command = command + addrAmodule     # there is no need to add space sign because it was used to differ commands
+        text_output.update(command)

@@ -17,19 +17,36 @@ def serial_port_send_command(ser: Serial, data: str):
     this function is used to transmit commands through serial port,
     it includes mechanism which encodes data as ASCII (bytes, b encoding)
     """
+    if ser.isOpen():
 
-    transmit = data.encode(encoding="ascii")
+        transmit = data.encode(encoding="ascii")
+        ser.write(transmit)
 
-    ser.write(transmit)
+    else:
+
+        pass
 
 
 def serial_port_read_bytes(ser: Serial, app_element: PySimpleGUI.Multiline, num_bytes: int):
-    app_element.print(ser.read(num_bytes))
+
+    if ser.isOpen():
+
+        app_element.print(ser.read(num_bytes))
+
+    else:
+
+        pass
 
 
 def serial_port_read_to_file(ser: Serial, file: BinaryIO, num_bytes: int):
     """
         to add format of file
         """
-    num_bytes_read = file.write(ser.read(num_bytes))
-    file.write(bytes('\n'.encode(encoding="ascii")))
+    if ser.isOpen():
+
+        num_bytes_read = file.write(ser.read(num_bytes))
+        file.write(bytes('\n'.encode(encoding="ascii")))
+
+    else:
+
+        pass
