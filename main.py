@@ -4,10 +4,10 @@ import time
 from Settings import *  # include all namespace from Settings.py file
 from Tools import *  # from Tools import everything
 from Help import *  # from Help import everything
-from Zigbee import *    # from Zigbee import everything
+from Zigbee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.2.5"
+myProjectVersion = "0.2.6"
 
 
 def runApp():
@@ -76,7 +76,8 @@ def runApp():
                                                enable_events=True, key="ZIGBEE_SETTING_PORT", pad=((10, 40), (0, 0)))
 
     app_zigbee_tab_serial_baudrate = sg.Listbox(zigbee_baudrate, default_values=['9600'], size=(7, 5),
-                                                enable_events=True, key="ZIGBEE_SETTING_BAUDRATE", pad=((0, 40), (0, 0)))
+                                                enable_events=True, key="ZIGBEE_SETTING_BAUDRATE",
+                                                pad=((0, 40), (0, 0)))
 
     app_zigbee_tab_signal_channel = sg.Listbox(zigbee_signal_channel, default_values=['11'], size=(7, 5),
                                                enable_events=True, key="ZIGBEE_SETTING_CHANNEL", pad=((0, 40), (0, 0)))
@@ -172,7 +173,7 @@ def runApp():
         # app_window_receive.print("event: ", event)  # debug
         # app_window_receive.print("values: ", values) # debug
 
-        device = ''.join(values["DEVICE ON PORT"])     # converts tuple or list into string, get proper device- A or B
+        device = ''.join(values["DEVICE ON PORT"])  # converts tuple or list into string, get proper device- A or B
 
         if event == 'About':
             app_window.disappear()
@@ -191,7 +192,25 @@ def runApp():
         elif event == "SEND":
 
             txd_data = app_window_transmit.get()
-            serial_port_send_command(uart[device], txd_data)
+
+            if txd_data == zigbee_commands_set["GET SHORT ADDRESS OF THE DEVICE"]:
+
+                serial_port_send_command(uart[device], txd_data)
+                time.sleep(0.1)
+
+                if device == "Device A":
+
+                    str_b = str(uart[device].read(11), "UTF-8")
+                    show_device_addr(str_b, app_zigbee_tab_addrA_input)
+
+                elif device == "Device B":
+
+                    str_b = str(uart[device].read(11), "UTF-8")
+                    show_device_addr(str_b, app_zigbee_tab_addrB_input)
+
+            else:
+
+                serial_port_send_command(uart[device], txd_data)
 
         elif event == "FILE TO RECORD DATA":
 
@@ -207,12 +226,13 @@ def runApp():
 
         elif event == "READ TO FILE":
 
-            serial_port_read_to_file(uart[device], file_read_uart, txd_data.__sizeof__())
+            serial_port_read_to_file(uart[device], file_read_uart, 5)  # the same here about number of bytes to read
             pass
 
         elif event == "READ":
 
-            serial_port_read_bytes(uart[device], app_window_receive, txd_data.__sizeof__())
+            serial_port_read_to_window(uart[device], app_window_receive, 5)
+            # but number of bytes to read must be controlled !!!
             pass
 
         elif event == "CLOSE FILE":
@@ -230,14 +250,9 @@ def runApp():
 runApp()
 
 if uart["Device A"].isOpen():
-
     uart["Device A"].close()  # when main program was finished and port was not closed, close it
     del uart["Device A"]
 
 if uart["Device B"].isOpen():
-
     uart["Device B"].close()  # when main program was finished and port was not closed, close it
     del uart["Device B"]
-
-
-

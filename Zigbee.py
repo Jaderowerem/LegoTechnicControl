@@ -1,3 +1,5 @@
+import PySimpleGUI
+
 from Settings import *
 
 """
@@ -25,7 +27,13 @@ zigbee_commands_set = {
 }
 
 
-def get_zigbee_command(gui_values: tuple, text_output: PySimpleGUI.Multiline):
+def show_device_addr(packet: str, addr_to_show: PySimpleGUI.Input):
+
+    addr = packet[7::]  # format of address xxxx
+    addr_to_show.update(addr)
+
+
+def get_zigbee_command(gui_values: tuple, text_output: PySimpleGUI.Input):
     command = zigbee_commands_set[gui_values["ZIGBEE_COMMAND"]]
 
     if command == zigbee_commands_set["SET FACTORY SETTINGS"]:
@@ -77,11 +85,12 @@ def get_zigbee_command(gui_values: tuple, text_output: PySimpleGUI.Multiline):
     elif command == zigbee_commands_set["PACKET FROM MODULE A TO B"]:
 
         addrBmodule = "".join(gui_values["ZIGBEE_ADDR_B"])
-        command = command + " " + addrBmodule
+        command = command + " " + addrBmodule + " "
         text_output.update(command)
 
     elif command == zigbee_commands_set["PACKET FROM MODULE B TO A"]:
 
         addrAmodule = "".join(gui_values["ZIGBEE_ADDR_A"])
-        command = command + addrAmodule     # there is no need to add space sign because it was used to differ commands
+        command = command + addrAmodule + " "     # there is no need to add space sign because it was used to differ
+        # commands
         text_output.update(command)
