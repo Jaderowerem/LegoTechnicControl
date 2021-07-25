@@ -7,7 +7,7 @@ from Help import *  # from Help import everything
 from Zigbee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.2.6"
+myProjectVersion = "0.2.7"
 
 
 def runApp():
@@ -100,7 +100,7 @@ def runApp():
     app_zigbee_tab_serial_baudrate_text = sg.Text("Baud rate", pad=(20, 10))
     app_zigbee_tab_signal_channel_text = sg.Text("Signal channel", pad=((20, 0), (0, 0)))
     app_zigbee_tab_signal_panid_text = sg.Text("PANID", pad=((50, 0), (0, 0)))
-    app_zigbee_tab_signal_panid_info = sg.Text("Set address 0x0000 - 0x3FFE", pad=((0, 0), (0, 80)))
+    app_zigbee_tab_signal_panid_info = sg.Text("Set address 0000 - 3FFE", pad=((0, 0), (0, 80)))
     # pad: ((distance from left corner of element, distance from right corner), (go down, go up))
     app_zigbee_tab_commands_text = sg.Text("Commands", pad=((10, 225), (30, 0)))
     app_zigbee_tab_addrA_text = sg.Text("Address of module A", pad=((0, 50), (30, 0)))
@@ -202,11 +202,13 @@ def runApp():
 
                     str_b = str(uart[device].read(11), "UTF-8")
                     show_device_addr(str_b, app_zigbee_tab_addrA_input)
+                    uart[device].reset_input_buffer()   # clear input buffer after data has just been read
 
                 elif device == "Device B":
 
                     str_b = str(uart[device].read(11), "UTF-8")
                     show_device_addr(str_b, app_zigbee_tab_addrB_input)
+                    uart[device].reset_input_buffer()   # clear input buffer after data has just been read
 
             else:
 
@@ -226,13 +228,15 @@ def runApp():
 
         elif event == "READ TO FILE":
 
-            serial_port_read_to_file(uart[device], file_read_uart, 5)  # the same here about number of bytes to read
+            serial_port_read_to_file(uart[device], file_read_uart, 100)
             pass
 
         elif event == "READ":
 
-            serial_port_read_to_window(uart[device], app_window_receive, 5)
-            # but number of bytes to read must be controlled !!!
+            serial_port_read_to_window(uart[device], app_window_receive, 100)    # it reads up to 100 bytes or less but
+            # within timeout, when timeout is exceeded, it breaks the readout,
+            # so two factors must be tuned: timeout and number of bytes to read
+
             pass
 
         elif event == "CLOSE FILE":

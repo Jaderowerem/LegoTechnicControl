@@ -17,8 +17,10 @@ def serial_port_send_command(ser: Serial, data: str):
     this function is used to transmit commands through serial port,
     it includes mechanism which encodes data as ASCII (bytes, b encoding)
     """
+
     if ser.isOpen():
 
+        ser.reset_output_buffer()
         transmit = data.encode(encoding="ascii")
         ser.write(transmit)
 
@@ -27,11 +29,21 @@ def serial_port_send_command(ser: Serial, data: str):
         pass
 
 
-def serial_port_read_bytes(ser: Serial, app_element: PySimpleGUI.Multiline, num_bytes: int):
+def serial_port_read_to_window(ser: Serial, app_element: PySimpleGUI.Multiline, num_bytes: int):
 
     if ser.isOpen():
 
+        """
         app_element.print(ser.read(num_bytes))
+
+        """
+        if ser.isOpen():
+            m = str(ser.read(num_bytes), "UTF-8")
+            app_element.print(m)
+            ser.reset_input_buffer()
+            
+            # m = ser.read(num_bytes)
+            # app_element.print(m.decode("UTF-8"))
 
     else:
 
