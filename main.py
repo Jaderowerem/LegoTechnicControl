@@ -7,7 +7,7 @@ from Help import *  # from Help import everything
 from Zigbee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.2.7"
+myProjectVersion = "0.2.8"
 
 
 def runApp():

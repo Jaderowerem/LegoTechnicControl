@@ -20,7 +20,7 @@ def serial_port_send_command(ser: Serial, data: str):
 
     if ser.isOpen():
 
-        ser.reset_output_buffer()
+        ser.reset_output_buffer()   # it is a good practise to clear output buffer before any new data will be loaded
         transmit = data.encode(encoding="ascii")
         ser.write(transmit)
 
@@ -40,7 +40,7 @@ def serial_port_read_to_window(ser: Serial, app_element: PySimpleGUI.Multiline, 
         if ser.isOpen():
             m = str(ser.read(num_bytes), "UTF-8")
             app_element.print(m)
-            ser.reset_input_buffer()
+            ser.reset_input_buffer()    # it is a good practise to clear FIFO after readout
             
             # m = ser.read(num_bytes)
             # app_element.print(m.decode("UTF-8"))
