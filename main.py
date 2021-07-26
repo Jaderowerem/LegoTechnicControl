@@ -1,5 +1,6 @@
 import PySimpleGUI
 import time
+import os.path
 
 from Settings import *  # include all namespace from Settings.py file
 from Tools import *  # from Tools import everything
@@ -7,7 +8,8 @@ from Help import *  # from Help import everything
 from Zigbee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.2.8"
+myProjectVersion = "0.2.9"
+file_serial_read_path = ""
 
 
 def runApp():
@@ -15,6 +17,9 @@ def runApp():
     RunApp is the main process of the GUI application, here other components
     will be added
     """
+
+    global file_serial_read_path    # the global variable is going to be edited inside the module
+
     sg.theme('Dark')
     sg.set_options(element_padding=(0, 0))
 
@@ -216,11 +221,12 @@ def runApp():
 
         elif event == "FILE TO RECORD DATA":
 
-            file_read_uart_name = sg.popup_get_file('File to open', no_window=True)
+            file_serial_read_path = sg.popup_get_file('File to open', no_window=True)   # returns path to the file
+            # print(file_serial_read_path)
 
             try:
 
-                file_read_uart = open(file_read_uart_name, 'wb')
+                file_serial_read = open(file_serial_read_path, 'wb')
 
             except OSError:
 
@@ -228,8 +234,13 @@ def runApp():
 
         elif event == "READ TO FILE":
 
-            serial_port_read_to_file(uart[device], file_read_uart, 100)
-            pass
+            if os.path.isfile(file_serial_read_path):   # first check if the file exists
+
+                serial_port_read_to_file(uart[device], file_serial_read, 100)
+
+            else:
+
+                app_window["-RECEIVE-"].update("The file does not exist !!!")
 
         elif event == "READ":
 
@@ -241,7 +252,9 @@ def runApp():
 
         elif event == "CLOSE FILE":
 
-            file_read_uart.close()
+            if os.path.isfile(file_serial_read_path):  # first check if the file exists
+
+                file_serial_read.close()
 
         elif event == "ZIGBEE_COMMAND":
 
