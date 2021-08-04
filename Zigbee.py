@@ -150,6 +150,49 @@ def Compute_CRC8(data: str, lookUpTable: list, initial_crc: int):
     return str(crc)
 
 
-def get_length_of_packet(data: str):
+def get_length_of_data(data: str):
 
     return len(data)
+
+
+def MySimpleProtocol_transmit(data: str):
+
+    """
+    MySimpleProtocol ver 1.0 is simple protocol used to transmit and receive data between modules in Zigbee network
+    using P2P packet
+
+    :param data: data to be transmitted, string characters
+    :return:
+
+    1) A -> B: Transmit first packet which includes total number of data characters (bytes)
+
+    P2P address_B_module data_length CRC-8
+
+    data_length is encoded using 3 characters of ASCII code
+    data_length = ASCII characters used to encode object name + ASCII characters to encode value + 2 (space signs)
+
+    The role of space sign is a separator
+
+    CRC-8 is encoded using 3 characters of ASCII code
+
+    Total number of bytes to be transmitted is 7 (3 + 3 + space sign between data_length and CRC-8)
+
+    2) module B computes CRC-8, if computed CRC-8 covers received CRC, B sends confirmation message OK_
+    otherwise, NOK message will be transmitted and the transmission is treated as not valid !!!
+
+    Transmission status:
+    OK_ - transmission is valid (3 ASCII characters)
+    NOK - transmission is not valid (3 ASCII characters)
+
+    packet to receive is: status CRC-8
+
+    Total number of bytes to receive is 7 (3 + 1 (space) + 3 (CRC-8))
+
+    3) If transmission is valid, A-> B sends object name and value
+
+    P2P address_B_module object_name value CRC-8
+
+    4) exactly the same procedure like in step 2)
+    """
+
+    Data_length = get_length_of_data(data)
