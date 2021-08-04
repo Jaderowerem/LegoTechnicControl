@@ -193,6 +193,9 @@ def MySimpleProtocol_transmit(data: str):
     P2P address_B_module object_name value CRC-8
 
     4) exactly the same procedure like in step 2)
+
+    For each step, CRC-8 is computed including space signs !!!
+    However, P2P address is not taken into consideration for CRC-8 (it is not visible for this layer)
     """
 
     Data_length = get_length_of_data(data)
