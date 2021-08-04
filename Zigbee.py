@@ -135,9 +135,11 @@ def Calculate_CRC8_lookUpTable(lookUpTable: list, polynomial: int, data_format: 
 def Compute_CRC8(data: str, lookUpTable: list, initial_crc: int):
     """
     :param data: input data, by default set to 0
-    :param lookUpTable: look up table which stores computed CRC 8 values for given polynomial
+    :param lookUpTable: look up table which stores computed CRC 8 values
+    for given polynomial, it should be global object
     :param initial_crc: initial value of CRC
-    :return: computed CRC-8 for input data
+    :return: computed CRC-8
+    for input data
     """
 
     crc = initial_crc
@@ -197,5 +199,16 @@ def MySimpleProtocol_transmit(data: str):
     For each step, CRC-8 is computed including space signs !!!
     However, P2P address is not taken into consideration for CRC-8 (it is not visible for this layer)
     """
+    txd_data = data + " "   # add space sign
+    Data_length = get_length_of_data(txd_data)
 
-    Data_length = get_length_of_data(data)
+    if Data_length < 100:
+        Encoded_Data_length = "0" + str(Data_length)    # if there are 2 characters, add 0 at the beginning
+
+    else:
+        Encoded_Data_length = str(Data_length)
+
+    Compute_CRC8(Encoded_Data_length, )
+
+
+
