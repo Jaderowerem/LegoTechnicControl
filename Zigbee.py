@@ -23,12 +23,11 @@ zigbee_commands_set = {
     "GET DEVICE IEEE ADDRESS": "AT+GETIEEE",
     "GET PARENT IEEE ADDRESS": "AT+GETFIEEE",
     "PACKET FROM MODULE A TO B": "P2P",
-    "PACKET FROM MODULE B TO A": "P2P "     # adding space to differ packets between sending from A to B and from B to A
+    "PACKET FROM MODULE B TO A": "P2P "  # adding space to differ packets between sending from A to B and from B to A
 }
 
 
 def show_device_addr(packet: str, addr_to_show: PySimpleGUI.Input):
-
     addr = packet[7::]  # format of address xxxx
     addr_to_show.update(addr)
 
@@ -74,7 +73,7 @@ def get_zigbee_command(gui_values: tuple, text_output: PySimpleGUI.Input):
 
     elif command == zigbee_commands_set["SET PANID"]:
 
-        panid = "".join(gui_values["ZIGBEE_SET_PANID"])     # convert list into string
+        panid = "".join(gui_values["ZIGBEE_SET_PANID"])  # convert list into string
         command = command + " " + panid
         text_output.update(command)
 
@@ -91,13 +90,12 @@ def get_zigbee_command(gui_values: tuple, text_output: PySimpleGUI.Input):
     elif command == zigbee_commands_set["PACKET FROM MODULE B TO A"]:
 
         addrAmodule = "".join(gui_values["ZIGBEE_ADDR_A"])
-        command = command + addrAmodule + " "     # there is no need to add space sign because it was used to differ
+        command = command + addrAmodule + " "  # there is no need to add space sign because it was used to differ
         # commands
         text_output.update(command)
 
 
 def Calculate_CRC8_lookUpTable(lookUpTable: list, polynomial: int, data_format: str):
-
     """
     :param lookUpTable: destination list object where generated look up table will be stored
     :param polynomial: CRC polynomial
@@ -134,17 +132,24 @@ def Calculate_CRC8_lookUpTable(lookUpTable: list, polynomial: int, data_format: 
             lookUpTable.append(byte)
 
 
-def Compute_CRC8(data: str, lookUpTable: list):
-
+def Compute_CRC8(data: str, lookUpTable: list, initial_crc: int):
     """
-    :param data: input data
+    :param data: input data, by default set to 0
     :param lookUpTable: look up table which stores computed CRC 8 values for given polynomial
+    :param initial_crc: initial value of CRC
     :return: computed CRC-8 for input data
     """
-    crc = 0
 
-    for i in data:
-        xor_in = i ^ crc
+    crc = initial_crc
+
+    for str_char in data:
+        dec_char = ord(str_char)  # convert string character into decimal value 0 - 255
+        xor_in = dec_char ^ crc
         crc = lookUpTable[xor_in]
 
-    return crc
+    return str(crc)
+
+
+def get_length_of_packet(data: str):
+
+    return len(data)
