@@ -279,25 +279,25 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, Address_ZigBee_
 
         raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not equal to 7
 
-    else:   # go on
+    else:  # go on
         packet_CRC8 = Compute_CRC8(rxd_packet[0:4], CRC8_lookuptable, 0)
 
         if packet_CRC8 != rxd_packet[4::]:
 
             raise MySimpleProtocolCRC8  # raise exception when calculated CRC-8 does not cover received one
 
-        else:   # go on
+        else:  # go on
 
             if rxd_packet[0:3] == "NOK" or rxd_packet[0:3] != "OK_":
 
-                raise MySimpleProtocolStatus    # raise the exception when no OK_ status has been received
+                raise MySimpleProtocolStatus  # raise the exception when no OK_ status has been received
 
             elif rxd_packet[0:3] == "OK_":
                 """
                 3)  Go on transmission if it is still valid
                 """
                 # transmission is valid, go on
-                packet_CRC8 = Compute_CRC8(data, CRC8_lookuptable, 0)   # calculate CRC-8 for data
+                packet_CRC8 = Compute_CRC8(data, CRC8_lookuptable, 0)  # calculate CRC-8 for data
                 # prepare packet
                 txd_packet = "P2P " + Address_ZigBee_module + " " + data + " " + packet_CRC8
                 # Send txd_packet via UART to ZigBee module
@@ -326,4 +326,8 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, Address_ZigBee_
                             raise MySimpleProtocolStatus  # raise the exception when no OK_ status has been received
 
                         elif rxd_packet[0:3] == "OK_":
-                            return "Valid transmission"     # transmission successfully ends up
+                            return "Valid transmission"  # transmission successfully ends up
+
+
+def MySimpleProtocol_receive(data: str, transmission_type: str, Address_ZigBee_module: str, uart_device: str):
+    pass
