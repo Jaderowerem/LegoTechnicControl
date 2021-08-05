@@ -306,4 +306,24 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, Address_ZigBee_
                 """
                 4)  Check feedback from receiver, if CRC-8 and status will be fine, transmission ends and is valid
                 """
+                serial_port_read_to_buffer(uart[uart_device], rxd_packet, 7)
 
+                if len(rxd_packet) != 7:
+
+                    raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not equal to 7
+
+                else:  # go on
+                    packet_CRC8 = Compute_CRC8(rxd_packet[0:4], CRC8_lookuptable, 0)
+
+                    if packet_CRC8 != rxd_packet[4::]:
+
+                        raise MySimpleProtocolCRC8  # raise exception when calculated CRC-8 does not cover received one
+
+                    else:  # go on
+
+                        if rxd_packet[0:3] == "NOK" or rxd_packet[0:3] != "OK_":
+
+                            raise MySimpleProtocolStatus  # raise the exception when no OK_ status has been received
+
+                        elif rxd_packet[0:3] == "OK_":
+                            return "Valid transmission"     # transmission successfully ends up
