@@ -267,8 +267,8 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, Address_ZigBee_
 
         txd_packet = "P2P " + Address_ZigBee_module + " " + txd_packet + packet_CRC8
 
-        print("txd_packet 1): ", txd_packet)  # debug
-        print("final length of the 1) txd_packet: ", len(txd_packet))  # debug
+        print("length of the txd_packet without ZigBee header: ", len(txd_packet[9::]),
+              "B", ", packet: ", txd_packet)  # debug
 
         # Send txd_packet via UART to ZigBee module
         serial_port_send_command(uart[uart_device], txd_packet)
