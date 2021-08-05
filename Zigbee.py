@@ -190,6 +190,9 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, Address_ZigBee_
     MySimpleProtocol ver 1.0 is simple protocol used to transmit and receive data between modules in Zigbee network
     using P2P txd_packet
 
+    Where at least one module should be configured as transmitter (for example coordinator, server),
+    other devices as receivers by default
+
     :param data: data to be transmitted, string characters
     :param transmission_type: a type of transmission:
         - CTRL - control
@@ -205,6 +208,7 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, Address_ZigBee_
 
         P2P address_B_module transmission_type data_length CRC-8
 
+        transmission_type is encoded using 4B
         data_length is encoded using 3 characters of ASCII code
         data_length = ASCII characters used to encode object name + ASCII characters to encode value + 2 (space signs)
 
@@ -254,8 +258,8 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, Address_ZigBee_
         txd_packet = "CTRL" + " " + Encoded_Data_length + " "
         """
         CRC does not include P2P Address_ZigBee_module because these elements
-        are not visible for data readout via UART- my program is not able
-        to see it
+        are not visible for data readout via UART- received bytes from UART does
+        not contain ZigBee header
         """
         packet_CRC8 = Compute_CRC8(txd_packet, CRC8_lookuptable, 0)
 
