@@ -1,6 +1,35 @@
 import PySimpleGUI
 
 from Settings import *
+from SerialPort import *
+
+CRC8_lookuptable = []  # a global list which will store generated CRC-8
+
+"""
+MySimpleProtocol exceptions definition
+"""
+
+
+class MySimpleProtocolDataLength(Exception):
+    """
+    Raised when received number of bytes is not proper
+    """
+    pass
+
+
+class MySimpleProtocolCRC8(Exception):
+    """
+    Raised when calculated CRC-8 is not equal to received CRC-8
+    """
+    pass
+
+
+class MySimpleProtocolStatus(Exception):
+    """
+    Raised when NOK status has been received
+    """
+    pass
+
 
 """
 zigbee_commands_set is equivalent to app_zigbee_button_menu_commands in main.py
@@ -153,22 +182,28 @@ def Compute_CRC8(data: str, lookUpTable: list, initial_crc: int):
 
 
 def get_length_of_data(data: str):
-
     return len(data)
 
 
-def MySimpleProtocol_transmit(data: str):
-
+def MySimpleProtocol_transmit(data: str, transmission_type: str, Address_ZigBee_module: str, uart_device: str):
     """
     MySimpleProtocol ver 1.0 is simple protocol used to transmit and receive data between modules in Zigbee network
-    using P2P packet
+    using P2P txd_packet
 
     :param data: data to be transmitted, string characters
+    :param transmission_type: a type of transmission:
+        - CTRL - control
+        - PROG - programming
+        - READ - readout
+
+    :param Address_ZigBee_module: address of destination ZigBee module
+    :param uart_device: indicates which uart device is being used: Device A or B
     :return:
 
-        1) A -> B: Transmit first packet which includes total number of data characters (bytes)
+        1) A -> B: Transmit first txd_packet which includes total number of data characters (bytes) and indicates
+        a type of transmission
 
-        P2P address_B_module data_length CRC-8
+        P2P address_B_module transmission_type data_length CRC-8
 
         data_length is encoded using 3 characters of ASCII code
         data_length = ASCII characters used to encode object name + ASCII characters to encode value + 2 (space signs)
@@ -177,7 +212,8 @@ def MySimpleProtocol_transmit(data: str):
 
         CRC-8 is encoded using 3 characters of ASCII code
 
-        Total number of bytes to be transmitted is 7 (3 + 3 + space sign between data_length and CRC-8)
+        Total number of bytes to be transmitted is 12
+        (4B [transmission type] + 1B [space] + 3B [Data length] + 1B [space] + 3B [CRC-8])
 
         2) module B computes CRC-8, if computed CRC-8 covers received CRC, B sends confirmation message OK_
         otherwise, NOK message will be transmitted and the transmission is treated as not valid !!!
@@ -186,7 +222,7 @@ def MySimpleProtocol_transmit(data: str):
         OK_ - transmission is valid (3 ASCII characters)
         NOK - transmission is not valid (3 ASCII characters)
 
-        packet to receive is: status CRC-8
+        txd_packet to receive is: status CRC-8
 
         Total number of bytes to receive is 7 (3 + 1 (space) + 3 (CRC-8))
 
@@ -199,16 +235,75 @@ def MySimpleProtocol_transmit(data: str):
     For each step, CRC-8 is computed including space signs !!!
     However, P2P address is not taken into consideration for CRC-8 (it is not visible for this layer)
     """
-    txd_data = data + " "   # add space sign
-    Data_length = get_length_of_data(txd_data)
 
-    if Data_length < 100:
-        Encoded_Data_length = "0" + str(Data_length)    # if there are 2 characters, add 0 at the beginning
+    """
+    1)  Inform receiver about number of data bytes and transmission type
+    """
+    Data_length = get_length_of_data(data)
 
-    else:
-        Encoded_Data_length = str(Data_length)
+    if Data_length < 10:
+        Encoded_Data_length = "00" + str(Data_length)  # if there is 1 character, add 00 at the beginning
 
-    Compute_CRC8(Encoded_Data_length, )
+    elif Data_length < 100:
+        Encoded_Data_length = "0" + str(Data_length)  # if there are 2 characters, add 0 at the beginning
 
+    elif Data_length >= 100:
+        Encoded_Data_length = str(Data_length)  # max 999 B can be transmitted !!!
 
+    if transmission_type == "CTRL":
+        txd_packet = "CTRL" + " " + Encoded_Data_length + " "
+        """
+        CRC does not include P2P Address_ZigBee_module because these elements
+        are not visible for data readout via UART- my program is not able
+        to see it
+        """
+        packet_CRC8 = Compute_CRC8(txd_packet, CRC8_lookuptable, 0)
+
+        # now add P2P Address_ZigBee_module at the beginning of the txd_packet
+
+        txd_packet = "P2P " + Address_ZigBee_module + " " + txd_packet + packet_CRC8
+
+        print("txd_packet 1): ", txd_packet)  # debug
+        print("final length of the 1) txd_packet: ", len(txd_packet))  # debug
+
+        # Send txd_packet via UART to ZigBee module
+        serial_port_send_command(uart[uart_device], txd_packet)
+
+    """
+    2)  Check feedback from receiver
+    """
+    rxd_packet = ""  # create buffer for readout
+    serial_port_read_to_buffer(uart[uart_device], rxd_packet, 7)
+
+    if len(rxd_packet) != 7:
+
+        raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not equal to 7
+
+    else:   # go on
+        packet_CRC8 = Compute_CRC8(rxd_packet[0:4], CRC8_lookuptable, 0)
+
+        if packet_CRC8 != rxd_packet[4::]:
+
+            raise MySimpleProtocolCRC8  # raise exception when calculated CRC-8 does not cover received one
+
+        else:   # go on
+
+            if rxd_packet[0:3] == "NOK" or rxd_packet[0:3] != "OK_":
+
+                raise MySimpleProtocolStatus    # raise the exception when no OK_ status has been received
+
+            elif rxd_packet[0:3] == "OK_":
+                """
+                3)  Go on transmission if it is still valid
+                """
+                # transmission is valid, go on
+                packet_CRC8 = Compute_CRC8(data, CRC8_lookuptable, 0)   # calculate CRC-8 for data
+                # prepare packet
+                txd_packet = "P2P " + Address_ZigBee_module + " " + data + " " + packet_CRC8
+                # Send txd_packet via UART to ZigBee module
+                serial_port_send_command(uart[uart_device], txd_packet)
+
+                """
+                4)  Check feedback from receiver, if CRC-8 and status will be fine, transmission ends and is valid
+                """
 

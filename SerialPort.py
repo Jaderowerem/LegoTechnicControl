@@ -2,9 +2,13 @@ import PySimpleGUI
 from serial import *
 from typing import BinaryIO
 
+"""
+    timeout is given in [sec]
+  """
+
 uart = {
-    "Device A": Serial(bytesize=EIGHTBITS, timeout=1, write_timeout=2),  # device A
-    "Device B": Serial(bytesize=EIGHTBITS, timeout=1, write_timeout=2)  # device B
+    "Device A": Serial(bytesize=EIGHTBITS, timeout=0.2, write_timeout=0.2),  # device A
+    "Device B": Serial(bytesize=EIGHTBITS, timeout=0.2, write_timeout=0.2)  # device B
 }
 
 
@@ -47,6 +51,22 @@ def serial_port_read_to_window(ser: Serial, app_element: PySimpleGUI.Multiline, 
 
     else:
 
+        pass
+
+
+def serial_port_read_to_buffer(ser: Serial, buffer: str, num_bytes: int):
+
+    if ser.isOpen():
+
+        """
+        app_element.print(ser.read(num_bytes))
+
+        """
+        if ser.isOpen():
+            buffer = str(ser.read(num_bytes), "UTF-8")
+            ser.reset_input_buffer()  # it is a good practise to clear FIFO after readout
+
+    else:
         pass
 
 
