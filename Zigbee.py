@@ -244,6 +244,7 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, Address_ZigBee_
     1)  Inform receiver about number of data bytes and transmission type
     """
     Data_length = get_length_of_data(data)
+    Encoded_Data_length = ""
 
     if Data_length < 10:
         Encoded_Data_length = "00" + str(Data_length)  # if there is 1 character, add 00 at the beginning
