@@ -8,7 +8,7 @@ from Help import *  # from Help import everything
 from Zigbee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.2.24"
+myProjectVersion = "0.2.25"
 file_serial_read_path = ""
 
 
@@ -219,8 +219,8 @@ def runApp():
 
             else:
 
-                # serial_port_send_command(uart[device], txd_data)
-                MySimpleProtocol_transmit(txd_data, "CTRL", "8DF3", "0000",  device)    # test for MySimpleProtocol
+                serial_port_send_command(uart[device], txd_data)
+                # MySimpleProtocol_transmit(txd_data, "CTRL", "8DF3", "0000",  device)    # test for MySimpleProtocol
                 # for ZigBee
 
         elif event == "FILE TO RECORD DATA":

@@ -224,7 +224,7 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, destination_add
         sender_address is encoded by 4B (support for multiple ZigBee modules in network)
         transmission_type is encoded using 4B
         data_length is encoded using 3 characters of ASCII code
-        data_length = ASCII characters used to encode object name + ASCII characters to encode value + 2 (space signs)
+        data_length = ASCII characters used to encode object name + 1 (space sign) + ASCII characters to encode value
 
         The role of space sign is a separator
 
@@ -250,6 +250,11 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, destination_add
         3) If transmission is valid, A-> B sends object name and value
 
         P2P address_B_module sender_address object_name value CRC-8
+
+        data = object_name value
+
+        for receiver, total number of bytes to read is:
+        sender_address [4B] + space [1B] + data [nB] + space [1B] + CRC-8 [3B]
 
         4) exactly the same procedure like in step 2)
 
