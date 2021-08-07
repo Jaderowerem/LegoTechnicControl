@@ -31,6 +31,13 @@ class MySimpleProtocolStatus(Exception):
     pass
 
 
+class MySimpleProtocolGeneral(Exception):
+    """
+    Raised when NOK status has been received
+    """
+    pass
+
+
 """
 zigbee_commands_set is equivalent to app_zigbee_button_menu_commands in main.py
 to get ZigBee command, values- it is a dictionary
@@ -178,14 +185,19 @@ def Compute_CRC8(data: str, lookUpTable: list, initial_crc: int):
         xor_in = dec_char ^ crc
         crc = lookUpTable[xor_in]
 
-    return str(crc)
+    result_crc = str(crc)
+    if len(result_crc) < 3:  # if length of CRC-8 is less than 3 characters, add 0 at the beginning
+        result_crc = "0" + result_crc
+
+    return result_crc
 
 
 def get_length_of_data(data: str):
     return len(data)
 
 
-def MySimpleProtocol_transmit(data: str, transmission_type: str, Address_ZigBee_module: str, uart_device: str):
+def MySimpleProtocol_transmit(data: str, transmission_type: str, destination_addr: str, source_addr: str,
+                              uart_device: str):
     """
     MySimpleProtocol ver 1.0 is simple protocol used to transmit and receive data between modules in Zigbee network
     using P2P txd_packet
@@ -199,15 +211,17 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, Address_ZigBee_
         - PROG - programming
         - READ - readout
 
-    :param Address_ZigBee_module: address of destination ZigBee module
+    :param destination_addr: address of destination ZigBee module
+    :param source_addr: sender address
     :param uart_device: indicates which uart device is being used: Device A or B
     :return:
 
         1) A -> B: Transmit first txd_packet which includes total number of data characters (bytes) and indicates
         a type of transmission
 
-        P2P address_B_module transmission_type data_length CRC-8
+        Start transmission packet: P2P address_B_module sender_address transmission_type data_length CRC-8
 
+        sender_address is encoded by 4B (support for multiple ZigBee modules in network)
         transmission_type is encoded using 4B
         data_length is encoded using 3 characters of ASCII code
         data_length = ASCII characters used to encode object name + ASCII characters to encode value + 2 (space signs)
@@ -216,8 +230,9 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, Address_ZigBee_
 
         CRC-8 is encoded using 3 characters of ASCII code
 
-        Total number of bytes to be transmitted is 12
-        (4B [transmission type] + 1B [space] + 3B [Data length] + 1B [space] + 3B [CRC-8])
+        Total number of bytes to be transmitted is 17
+        (4B [sender address] + 1B [space] + 4B [transmission type] + 1B [space] +
+        3B [Data length] + 1B [space] + 3B [CRC-8])
 
         2) module B computes CRC-8, if computed CRC-8 covers received CRC, B sends confirmation message OK_
         otherwise, NOK message will be transmitted and the transmission is treated as not valid !!!
@@ -225,23 +240,27 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, Address_ZigBee_
         Transmission status:
         OK_ - transmission is valid (3 ASCII characters)
         NOK - transmission is not valid (3 ASCII characters)
+        BSY - busy status, sent when the module is processing currently other transmission
 
-        txd_packet to receive is: status CRC-8
+        txd_packet to receive is: sender_address status CRC-8
 
-        Total number of bytes to receive is 7 (3 + 1 (space) + 3 (CRC-8))
+        Total number of bytes to receive is 12 (4B [sender address] + 1B [space] +
+        3B [status] + 1B [space] + 3B [CRC-8]
 
         3) If transmission is valid, A-> B sends object name and value
 
-        P2P address_B_module object_name value CRC-8
+        P2P address_B_module sender_address object_name value CRC-8
 
         4) exactly the same procedure like in step 2)
 
     For each step, CRC-8 is computed including space signs !!!
-    However, P2P address is not taken into consideration for CRC-8 (it is not visible for this layer)
+    However, first ZigBee header (P2P Address) is not taken into consideration
+    because it is not visible by this layer when data are being received via UART
     """
 
     """
-    1)  Inform receiver about number of data bytes and transmission type
+    1)  Send Start transmission packet to inform receiver about transmission type and following 
+    number of bytes to receive for data field
     """
     Data_length = get_length_of_data(data)
     Encoded_Data_length = ""
@@ -256,7 +275,7 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, Address_ZigBee_
         Encoded_Data_length = str(Data_length)  # max 999 B can be transmitted !!!
 
     if transmission_type == "CTRL":
-        txd_packet = "CTRL" + " " + Encoded_Data_length + " "
+        txd_packet = source_addr + " " + "CTRL" + " " + Encoded_Data_length + " "
         """
         CRC does not include P2P Address_ZigBee_module because these elements
         are not visible for data readout via UART- received bytes from UART does
@@ -266,7 +285,7 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, Address_ZigBee_
 
         # now add P2P Address_ZigBee_module at the beginning of the txd_packet
 
-        txd_packet = "P2P " + Address_ZigBee_module + " " + txd_packet + packet_CRC8
+        txd_packet = "P2P " + destination_addr + " " + txd_packet + packet_CRC8
 
         print("length of the txd_packet without ZigBee header: ", len(txd_packet[9::]),
               "B", ", packet: ", txd_packet)  # debug
@@ -278,60 +297,142 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, Address_ZigBee_
     2)  Check feedback from receiver
     """
     rxd_packet = ""  # create buffer for readout
-    serial_port_read_to_buffer(uart[uart_device], rxd_packet, 7)
+    """
+    start loop
+    """
+    while True:
+        serial_port_read_to_buffer(uart[uart_device], rxd_packet, 12)
 
-    if len(rxd_packet) != 7:
+        if len(rxd_packet) != 12:
 
-        raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not equal to 7
-
-    else:  # go on
-        packet_CRC8 = Compute_CRC8(rxd_packet[0:4], CRC8_lookuptable, 0)
-
-        if packet_CRC8 != rxd_packet[4::]:
-
-            raise MySimpleProtocolCRC8  # raise exception when calculated CRC-8 does not cover received one
+            raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not
+            # equal to 12
 
         else:  # go on
+            packet_CRC8 = Compute_CRC8(rxd_packet[0:9], CRC8_lookuptable, 0)
 
-            if rxd_packet[0:3] == "NOK" or rxd_packet[0:3] != "OK_":
-
-                raise MySimpleProtocolStatus  # raise the exception when no OK_ status has been received
-
-            elif rxd_packet[0:3] == "OK_":
+            if packet_CRC8 != rxd_packet[9::]:
                 """
-                3)  Go on transmission if it is still valid
+                Before raising exception, check if something is trying to start a new transmission during 
+                lasting transmission - device is busy
                 """
-                # transmission is valid, go on
-                packet_CRC8 = Compute_CRC8(data, CRC8_lookuptable, 0)  # calculate CRC-8 for data
-                # prepare packet
-                txd_packet = "P2P " + Address_ZigBee_module + " " + data + " " + packet_CRC8
-                # Send txd_packet via UART to ZigBee module
-                serial_port_send_command(uart[uart_device], txd_packet)
+                rxd_reg = rxd_packet  # save receive buffer content
 
-                """
-                4)  Check feedback from receiver, if CRC-8 and status will be fine, transmission ends and is valid
-                """
-                serial_port_read_to_buffer(uart[uart_device], rxd_packet, 7)
+                # receive reaming bytes to check if Start transmission packet came
+                serial_port_read_to_buffer(uart[uart_device], rxd_packet, 5)
+                rxd_packet = rxd_reg + rxd_packet  # build the packet
 
-                if len(rxd_packet) != 7:
+                # compute CRC- 8 for Start transmission packet
+                packet_CRC8 = Compute_CRC8(rxd_packet[0:14], CRC8_lookuptable, 0)
+                if packet_CRC8 != rxd_packet[14::]:
+                    # raise exception when calculated CRC-8 does not cover received one
+                    raise MySimpleProtocolCRC8
 
-                    raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not equal to 7
+                else:
+                    wait_module_addr = rxd_packet[0:4]
+
+                    if destination_addr != wait_module_addr:
+                        # it indicates that other module is trying to start transmission
+
+                        # send BSY status to module which is trying to start transmission
+                        txd_packet = source_addr + " " + "BSY "
+                        packet_CRC8 = Compute_CRC8(txd_packet, CRC8_lookuptable, 0)
+                        txd_packet = "P2P " + wait_module_addr + " " + txd_packet + packet_CRC8
+                        serial_port_send_command(uart[uart_device], txd_packet)
+
+                    else:
+                        raise MySimpleProtocolGeneral
+
+            else:  # go on
+                break  # exit the loop
+
+    status = rxd_packet[5:8]
+
+    if status == "NOK":
+        raise MySimpleProtocolStatus  # raise the exception when no OK_ status has been received
+
+    elif status == "BSY":
+        return "Destination module is busy"  # if module is processing currently other transmission
+
+    elif status != "NOK" or status != "BSY" or status != "OK_":
+        raise MySimpleProtocolStatus  # raise the exception when no supported status has been
+        # received
+
+    elif status == "OK_":
+        """
+        3)  Go on transmission if it is still valid
+        """
+        # transmission is valid, go on
+        txd_packet = source_addr + " " + data + " "
+        packet_CRC8 = Compute_CRC8(txd_packet, CRC8_lookuptable, 0)  # calculate CRC-8 for data
+        # prepare packet
+        txd_packet = "P2P " + destination_addr + " " + txd_packet + packet_CRC8
+        # Send txd_packet via UART to ZigBee module
+        serial_port_send_command(uart[uart_device], txd_packet)
+
+        """
+        4)  Check feedback from receiver, if CRC-8 and status will be fine, transmission ends up and is valid
+        """
+        while True:
+            serial_port_read_to_buffer(uart[uart_device], rxd_packet, 12)
+
+            if len(rxd_packet) != 12:
+
+                raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not
+                # equal to 12
+
+            else:  # go on
+                packet_CRC8 = Compute_CRC8(rxd_packet[0:9], CRC8_lookuptable, 0)
+
+                if packet_CRC8 != rxd_packet[9::]:
+                    """
+                    Before raising exception, check if something is trying to start a new transmission during 
+                    lasting transmission - device is busy
+                    """
+                    rxd_reg = rxd_packet  # save receive buffer content
+
+                    # receive reaming bytes to check if Start transmission packet came
+                    serial_port_read_to_buffer(uart[uart_device], rxd_packet, 5)
+                    rxd_packet = rxd_reg + rxd_packet  # build the packet
+
+                    # compute CRC- 8 for Start transmission packet
+                    packet_CRC8 = Compute_CRC8(rxd_packet[0:14], CRC8_lookuptable, 0)
+                    if packet_CRC8 != rxd_packet[14::]:
+                        # raise exception when calculated CRC-8 does not cover received one
+                        raise MySimpleProtocolCRC8
+
+                    else:
+                        wait_module_addr = rxd_packet[0:4]
+
+                        if destination_addr != wait_module_addr:
+                            # it indicates that other module is trying to start transmission
+
+                            # send BSY status to module which is trying to start transmission
+                            txd_packet = source_addr + " " + "BSY "
+                            packet_CRC8 = Compute_CRC8(txd_packet, CRC8_lookuptable, 0)
+                            txd_packet = "P2P " + wait_module_addr + " " + txd_packet + packet_CRC8
+                            serial_port_send_command(uart[uart_device], txd_packet)
+
+                        else:
+                            raise MySimpleProtocolGeneral
 
                 else:  # go on
-                    packet_CRC8 = Compute_CRC8(rxd_packet[0:4], CRC8_lookuptable, 0)
+                    break  # exit the loop
 
-                    if packet_CRC8 != rxd_packet[4::]:
+        status = rxd_packet[5:8]
 
-                        raise MySimpleProtocolCRC8  # raise exception when calculated CRC-8 does not cover received one
+        if status == "NOK":
+            raise MySimpleProtocolStatus  # raise the exception when no OK_ status has been received
 
-                    else:  # go on
+        elif status == "BSY":
+            return "Destination module is busy"  # if module is processing currently other transmission
 
-                        if rxd_packet[0:3] == "NOK" or rxd_packet[0:3] != "OK_":
+        elif status != "NOK" or status != "BSY" or status != "OK_":
+            raise MySimpleProtocolStatus  # raise the exception when no supported status has been
+            # received
 
-                            raise MySimpleProtocolStatus  # raise the exception when no OK_ status has been received
-
-                        elif rxd_packet[0:3] == "OK_":
-                            return "Valid transmission"  # transmission successfully ends up
+        elif status == "OK_":
+            return "Valid transmission"  # transmission successfully ends up
 
 
 def MySimpleProtocol_receive(data: str, transmission_type: str, Address_ZigBee_module: str, uart_device: str):

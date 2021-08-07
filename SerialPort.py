@@ -58,13 +58,14 @@ def serial_port_read_to_buffer(ser: Serial, buffer: str, num_bytes: int):
 
     if ser.isOpen():
 
-        """
-        app_element.print(ser.read(num_bytes))
-
-        """
         if ser.isOpen():
             buffer = str(ser.read(num_bytes), "UTF-8")
-            ser.reset_input_buffer()  # it is a good practise to clear FIFO after readout
+
+            """
+              For multiple ZigBee modules in network, clearing FIFO buffer after readout
+              is not a good idea 
+            """
+            #   ser.reset_input_buffer()
 
     else:
         pass
