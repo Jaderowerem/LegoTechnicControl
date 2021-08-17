@@ -54,23 +54,6 @@ def serial_port_read_to_window(ser: Serial, app_element: PySimpleGUI.Multiline, 
         pass
 
 
-def serial_port_read_to_buffer(ser: Serial, buffer: str, num_bytes: int):
-
-    if ser.isOpen():
-
-        if ser.isOpen():
-            buffer = str(ser.read(num_bytes), "UTF-8")
-
-            """
-              For multiple ZigBee modules in network, clearing FIFO buffer after readout
-              is not a good idea 
-            """
-            #   ser.reset_input_buffer()
-
-    else:
-        pass
-
-
 def serial_port_read_to_file(ser: Serial, file: BinaryIO, num_bytes: int):
     """
         to add format of file

@@ -267,6 +267,8 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, destination_add
     1)  Send Start transmission packet to inform receiver about transmission type and following 
     number of bytes to receive for data field
     """
+    uart[uart_device].reset_input_buffer()
+
     Data_length = get_length_of_data(data)
     Encoded_Data_length = ""
 
@@ -301,144 +303,78 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, destination_add
     """
     2)  Check feedback from receiver
     """
-    rxd_packet = ""  # create buffer for readout
-    """
-    start loop
-    """
-    while True:
-        serial_port_read_to_buffer(uart[uart_device], rxd_packet, 12)
+    rxd_bytes = uart[uart_device].read(12)
+    rxd_packet_str = rxd_bytes.decode()
 
-        if len(rxd_packet) != 12:
+    if len(rxd_packet_str) != 12:
 
-            raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not
-            # equal to 12
+        # raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not
+        # equal to 12
+        print("Length problem [2]")
 
-        else:  # go on
-            packet_CRC8 = Compute_CRC8(rxd_packet[0:9], CRC8_lookuptable, 0)
+    else:  # go on
+        packet_CRC8 = Compute_CRC8(rxd_packet_str[0:9], CRC8_lookuptable, 0)
 
-            if packet_CRC8 != rxd_packet[9::]:
+        if packet_CRC8 == rxd_packet_str[9::]:  # go on
+            status = rxd_packet_str[5:8]
+            print(status)
+
+            if status == "NOK":
+                print("NOK received [2]")
+
+            elif status == "BSY":
+                print("BSY received [2]")
+
+            elif status != "NOK" and status != "BSY" and status != "OK_":
+                print("No supported Status received [2]")
+
+            elif status == "OK_":
+                print('OK_ received [2]')
                 """
-                Before raising exception, check if something is trying to start a new transmission during 
-                lasting transmission - device is busy
+                3)  Go on transmission if it is still valid
                 """
-                rxd_reg = rxd_packet  # save receive buffer content
+                # transmission is valid, go on
+                txd_packet = source_addr + " " + data + " "
+                packet_CRC8 = Compute_CRC8(txd_packet, CRC8_lookuptable, 0)  # calculate CRC-8 for data
+                # prepare packet
+                txd_packet = "P2P " + destination_addr + " " + txd_packet + packet_CRC8
+                # Send txd_packet via UART to ZigBee module
+                serial_port_send_command(uart[uart_device], txd_packet)
 
-                # receive reaming bytes to check if Start transmission packet came
-                serial_port_read_to_buffer(uart[uart_device], rxd_packet, 5)
-                rxd_packet = rxd_reg + rxd_packet  # build the packet
+                """
+                4)  Check feedback from receiver, if CRC-8 and status will be fine, transmission ends up and is valid
+                """
+                rxd_bytes = uart[uart_device].read(12)
+                rxd_packet_str = rxd_bytes.decode()
 
-                # compute CRC- 8 for Start transmission packet
-                packet_CRC8 = Compute_CRC8(rxd_packet[0:14], CRC8_lookuptable, 0)
-                if packet_CRC8 != rxd_packet[14::]:
-                    # raise exception when calculated CRC-8 does not cover received one
-                    raise MySimpleProtocolCRC8
+                if len(rxd_packet_str) != 12:
 
-                else:
-                    wait_module_addr = rxd_packet[0:4]
-
-                    if destination_addr != wait_module_addr:
-                        # it indicates that other module is trying to start transmission
-
-                        # send BSY status to module which is trying to start transmission
-                        txd_packet = source_addr + " " + "BSY "
-                        packet_CRC8 = Compute_CRC8(txd_packet, CRC8_lookuptable, 0)
-                        txd_packet = "P2P " + wait_module_addr + " " + txd_packet + packet_CRC8
-                        serial_port_send_command(uart[uart_device], txd_packet)
-
-                    else:
-                        raise MySimpleProtocolGeneral
-
-            else:  # go on
-                break  # exit the loop
-
-    status = rxd_packet[5:8]
-
-    if status == "NOK":
-        raise MySimpleProtocolStatus  # raise the exception when no OK_ status has been received
-
-    elif status == "BSY":
-        return "Destination module is busy"  # if module is processing currently other transmission
-
-    elif status != "NOK" or status != "BSY" or status != "OK_":
-        raise MySimpleProtocolStatus  # raise the exception when no supported status has been
-        # received
-
-    elif status == "OK_":
-        """
-        3)  Go on transmission if it is still valid
-        """
-        # transmission is valid, go on
-        txd_packet = source_addr + " " + data + " "
-        packet_CRC8 = Compute_CRC8(txd_packet, CRC8_lookuptable, 0)  # calculate CRC-8 for data
-        # prepare packet
-        txd_packet = "P2P " + destination_addr + " " + txd_packet + packet_CRC8
-        # Send txd_packet via UART to ZigBee module
-        serial_port_send_command(uart[uart_device], txd_packet)
-
-        """
-        4)  Check feedback from receiver, if CRC-8 and status will be fine, transmission ends up and is valid
-        """
-        while True:
-            serial_port_read_to_buffer(uart[uart_device], rxd_packet, 12)
-
-            if len(rxd_packet) != 12:
-
-                raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not
-                # equal to 12
-
-            else:  # go on
-                packet_CRC8 = Compute_CRC8(rxd_packet[0:9], CRC8_lookuptable, 0)
-
-                if packet_CRC8 != rxd_packet[9::]:
-                    """
-                    Before raising exception, check if something is trying to start a new transmission during 
-                    lasting transmission - device is busy
-                    """
-                    rxd_reg = rxd_packet  # save receive buffer content
-
-                    # receive reaming bytes to check if Start transmission packet came
-                    serial_port_read_to_buffer(uart[uart_device], rxd_packet, 5)
-                    rxd_packet = rxd_reg + rxd_packet  # build the packet
-
-                    # compute CRC- 8 for Start transmission packet
-                    packet_CRC8 = Compute_CRC8(rxd_packet[0:14], CRC8_lookuptable, 0)
-                    if packet_CRC8 != rxd_packet[14::]:
-                        # raise exception when calculated CRC-8 does not cover received one
-                        raise MySimpleProtocolCRC8
-
-                    else:
-                        wait_module_addr = rxd_packet[0:4]
-
-                        if destination_addr != wait_module_addr:
-                            # it indicates that other module is trying to start transmission
-
-                            # send BSY status to module which is trying to start transmission
-                            txd_packet = source_addr + " " + "BSY "
-                            packet_CRC8 = Compute_CRC8(txd_packet, CRC8_lookuptable, 0)
-                            txd_packet = "P2P " + wait_module_addr + " " + txd_packet + packet_CRC8
-                            serial_port_send_command(uart[uart_device], txd_packet)
-
-                        else:
-                            raise MySimpleProtocolGeneral
+                    # raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not
+                    # equal to 12
+                    print("Length problem [4]")
 
                 else:  # go on
-                    break  # exit the loop
+                    packet_CRC8 = Compute_CRC8(rxd_packet_str[0:9], CRC8_lookuptable, 0)
 
-        status = rxd_packet[5:8]
+                    if packet_CRC8 != rxd_packet_str[9::]:
+                        print("CRC-8 issue [4]")
 
-        if status == "NOK":
-            raise MySimpleProtocolStatus  # raise the exception when no OK_ status has been received
+                    else:  # go on
 
-        elif status == "BSY":
-            return "Destination module is busy"  # if module is processing currently other transmission
+                        status = rxd_packet_str[5:8]
+                        print(status)
 
-        elif status != "NOK" or status != "BSY" or status != "OK_":
-            raise MySimpleProtocolStatus  # raise the exception when no supported status has been
-            # received
+                        if status == "NOK":
+                            print("NOK received [4]")
 
-        elif status == "OK_":
-            return "Valid transmission"  # transmission successfully ends up
+                        elif status == "BSY":
+                            print("BSY received [4]")
 
+                        elif status == "OK_":
+                            print('OK_ received [transmission valid]')
 
-def MySimpleProtocol_receive(data: str, transmission_type: str, Address_ZigBee_module: str, uart_device: str):
-    pass
+                        else:
+                            print("No supported Status received [4]")
+        else:
+
+            print("CRC-8 issue [4]")
