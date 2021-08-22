@@ -8,7 +8,7 @@ from Help import *  # from Help import everything
 from Zigbee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.2.26"
+myProjectVersion = "0.2.27"
 file_serial_read_path = ""
 
 
@@ -110,8 +110,8 @@ def runApp():
     app_zigbee_tab_signal_panid_info = sg.Text("Set address 0000 - 3FFE", pad=((0, 0), (0, 80)))
     # pad: ((distance from left corner of element, distance from right corner), (go down, go up))
     app_zigbee_tab_commands_text = sg.Text("Commands", pad=((10, 225), (30, 0)))
-    app_zigbee_tab_addrA_text = sg.Text("Address_ZigBee_module of module A", pad=((0, 50), (30, 0)))
-    app_zigbee_tab_addrB_text = sg.Text("Address_ZigBee_module of module B", pad=((0, 0), (30, 0)))
+    app_zigbee_tab_addrA_text = sg.Text("Address of module A", pad=((0, 50), (30, 0)))
+    app_zigbee_tab_addrB_text = sg.Text("Address of module B", pad=((0, 0), (30, 0)))
 
     """
     2.
@@ -130,6 +130,8 @@ def runApp():
                               app_zigbee_tab_signal_panid_info], [app_zigbee_tab_commands_text,
                                                                   app_zigbee_tab_addrA_text, app_zigbee_tab_addrB_text],
                              [app_zigbee_tab_commands, app_zigbee_tab_addrA_input, app_zigbee_tab_addrB_input]]
+
+    app_msp_tab_layout = [[]]
     """
     3.
     """
@@ -137,12 +139,15 @@ def runApp():
 
     app_zigbee_tab = sg.Tab(" Zigbee ", layout=app_zigbee_tab_layout, key="-ZIGBEE_TAB-", pad=(0, 20))
 
+    app_msp_tab = sg.Tab(" My Simple Protocol ", layout=app_msp_tab_layout, key="-MSP-")
+
     """
     4.
     """
     layout_tabs = [  # layout of group of tabs
         [app_serial_port_tab],
-        [app_zigbee_tab]
+        [app_zigbee_tab],
+        [app_msp_tab]
     ]
 
     app_tab_group = sg.TabGroup(layout_tabs)  # create tab group object which includes all tabs
@@ -219,10 +224,9 @@ def runApp():
 
             else:
 
-                #   serial_port_send_command(uart[device], txd_data)
-                MySimpleProtocol_transmit(txd_data, "CTRL", "8DF3", "0000",  device)    # test
-                # for MySimpleProtocol
-                # for ZigBee
+                serial_port_send_command(uart[device], txd_data)
+                #   MySimpleProtocol_transmit(txd_data, "CTRL", "8DF3", "0000",  device)    # test
+                # for MySimpleProtocol for ZigBee
 
         elif event == "FILE TO RECORD DATA":
 
