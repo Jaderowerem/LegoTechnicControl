@@ -4,6 +4,9 @@ from Settings import *
 from SerialPort import *
 
 CRC8_lookuptable = []  # a global list which will store generated CRC-8
+MSP_Obj_database = {  # dictionary which represents database to store all objects
+
+}
 
 """
 MySimpleProtocol exceptions definition

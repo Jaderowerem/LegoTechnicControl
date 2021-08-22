@@ -5,10 +5,10 @@ import os.path
 from Settings import *  # include all namespace from Settings.py file
 from Tools import *  # from Tools import everything
 from Help import *  # from Help import everything
-from Zigbee import *  # from Zigbee import everything
+from MySimpleProtocol_ZigBee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.2.27"
+myProjectVersion = "0.2.28"
 file_serial_read_path = ""
 
 
@@ -18,9 +18,9 @@ def runApp():
     will be added
     """
 
-    global file_serial_read_path    # the global variable is going to be edited inside the module
+    global file_serial_read_path  # the global variable is going to be edited inside the module
 
-    Calculate_CRC8_lookUpTable(CRC8_lookuptable, 0xA7, "decimal")   # fill up CRC-8 look up table
+    Calculate_CRC8_lookUpTable(CRC8_lookuptable, 0xA7, "decimal")  # fill up CRC-8 look up table
 
     sg.theme('Dark')
     sg.set_options(element_padding=(0, 0))
@@ -113,6 +113,17 @@ def runApp():
     app_zigbee_tab_addrA_text = sg.Text("Address of module A", pad=((0, 50), (30, 0)))
     app_zigbee_tab_addrB_text = sg.Text("Address of module B", pad=((0, 0), (30, 0)))
 
+    app_msp_tab_obj_database_text = sg.Text("Objects", pad=((10, 0), (10, 0)))
+    app_msp_tab_obj_names_text = sg.Text("Object name - label value", pad=((10, 0), (10, 0)))
+    app_msp_tab_obj_adding_object_text = sg.Text("Add new object: obj-label value", pad=((120, 0), (10, 0)))
+    app_msp_tab_obj_names_label_val = []
+    app_msp_tab_adding_obj_input = sg.Input(key='Adding new object', size=(30, 1), pad=((60, 0), (0, 80)))
+    app_msp_tab_listbox = sg.Listbox(app_msp_tab_obj_names_label_val, default_values=[""], size=(25, 5),
+                                     enable_events=True, key="OBJ NAMES", pad=((10, 0), (0, 0)))
+
+    app_msp_tab_add_obj_button = sg.Button("ADD OBJECT", pad=((10, 10), (10, 0)))
+    app_msp_tab_rm_obj_button = sg.Button("REMOVE OBJECT", pad=((0, 0), (10, 0)))
+
     """
     2.
     """
@@ -131,7 +142,10 @@ def runApp():
                                                                   app_zigbee_tab_addrA_text, app_zigbee_tab_addrB_text],
                              [app_zigbee_tab_commands, app_zigbee_tab_addrA_input, app_zigbee_tab_addrB_input]]
 
-    app_msp_tab_layout = [[]]
+    app_msp_tab_layout = [[app_msp_tab_obj_database_text], [app_msp_tab_obj_names_text,
+                                                            app_msp_tab_obj_adding_object_text],
+                          [app_msp_tab_listbox, app_msp_tab_adding_obj_input],
+                          [app_msp_tab_add_obj_button, app_msp_tab_rm_obj_button]]
     """
     3.
     """
@@ -214,13 +228,13 @@ def runApp():
 
                     str_b = str(uart[device].read(11), "UTF-8")
                     show_device_addr(str_b, app_zigbee_tab_addrA_input)
-                    uart[device].reset_input_buffer()   # clear input buffer after data has just been read
+                    uart[device].reset_input_buffer()  # clear input buffer after data has just been read
 
                 elif device == "Device B":
 
                     str_b = str(uart[device].read(11), "UTF-8")
                     show_device_addr(str_b, app_zigbee_tab_addrB_input)
-                    uart[device].reset_input_buffer()   # clear input buffer after data has just been read
+                    uart[device].reset_input_buffer()  # clear input buffer after data has just been read
 
             else:
 
@@ -230,7 +244,7 @@ def runApp():
 
         elif event == "FILE TO RECORD DATA":
 
-            file_serial_read_path = sg.popup_get_file('File to open', no_window=True)   # returns path to the file
+            file_serial_read_path = sg.popup_get_file('File to open', no_window=True)  # returns path to the file
             # print(file_serial_read_path)
 
             try:
@@ -243,7 +257,7 @@ def runApp():
 
         elif event == "READ TO FILE":
 
-            if os.path.isfile(file_serial_read_path):   # first check if the file exists
+            if os.path.isfile(file_serial_read_path):  # first check if the file exists
 
                 serial_port_read_to_file(uart[device], file_serial_read, 100)
 
@@ -253,7 +267,7 @@ def runApp():
 
         elif event == "READ":
 
-            serial_port_read_to_window(uart[device], app_window_receive, 100)    # it reads up to 100 bytes or less but
+            serial_port_read_to_window(uart[device], app_window_receive, 100)  # it reads up to 100 bytes or less but
             # within timeout, when timeout is exceeded, it breaks the readout,
             # so two factors must be tuned: timeout and number of bytes to read
 
@@ -268,6 +282,21 @@ def runApp():
         elif event == "ZIGBEE_COMMAND":
 
             get_zigbee_command(values, app_window_transmit)
+
+        elif event == "ADD OBJECT":
+
+            obj = app_msp_tab_adding_obj_input.get()
+            inx = obj.find("-")
+            obj_name = obj[0:inx]
+            new_key = obj[(inx + 1)::]
+
+            """
+            Add a new object to the data base
+            """
+            app_msp_tab_obj_names_label_val.append(obj)
+            app_msp_tab_listbox.update(app_msp_tab_obj_names_label_val)
+            MSP_Obj_database[new_key] = obj_name  # for dictionary, there is no append(), add() , etc function,
+            # this is the way to add new elements to dictionary
 
     app_window.close()
     del app_window
