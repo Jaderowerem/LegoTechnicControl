@@ -34,13 +34,6 @@ class MySimpleProtocolStatus(Exception):
     pass
 
 
-class MySimpleProtocolGeneral(Exception):
-    """
-    Raised when NOK status has been received
-    """
-    pass
-
-
 """
 zigbee_commands_set is equivalent to app_zigbee_button_menu_commands in main.py
 to get ZigBee command, values- it is a dictionary
@@ -297,9 +290,6 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, destination_add
 
         txd_packet = "P2P " + destination_addr + " " + txd_packet + packet_CRC8
 
-        print("length of the txd_packet without ZigBee header: ", len(txd_packet[9::]),
-              "B", ", packet: ", txd_packet)  # debug
-
         # Send txd_packet via UART to ZigBee module
         serial_port_send_command(uart[uart_device], txd_packet)
 
@@ -307,32 +297,29 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, destination_add
     2)  Check feedback from receiver
     """
     rxd_bytes = uart[uart_device].read(12)
-    rxd_packet_str = rxd_bytes.decode()
+    rxd_packet_str = rxd_bytes.decode()  # !!!
 
     if len(rxd_packet_str) != 12:
 
-        # raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not
+        raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not
         # equal to 12
-        print("Length problem [2]")
 
     else:  # go on
         packet_CRC8 = Compute_CRC8(rxd_packet_str[0:9], CRC8_lookuptable, 0)
 
         if packet_CRC8 == rxd_packet_str[9::]:  # go on
-            status = rxd_packet_str[5:8]
-            print(status)
+            MSP_status = rxd_packet_str[5:8]
 
-            if status == "NOK":
-                print("NOK received [2]")
+            if MSP_status == "NOK":
+                raise MySimpleProtocolStatus
 
-            elif status == "BSY":
-                print("BSY received [2]")
+            elif MSP_status == "BSY":
+                pass
 
-            elif status != "NOK" and status != "BSY" and status != "OK_":
-                print("No supported Status received [2]")
+            elif MSP_status != "NOK" and MSP_status != "BSY" and MSP_status != "OK_":
+                raise MySimpleProtocolStatus
 
-            elif status == "OK_":
-                print('OK_ received [2]')
+            elif MSP_status == "OK_":
                 """
                 3)  Go on transmission if it is still valid
                 """
@@ -348,36 +335,33 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, destination_add
                 4)  Check feedback from receiver, if CRC-8 and status will be fine, transmission ends up and is valid
                 """
                 rxd_bytes = uart[uart_device].read(12)
-                rxd_packet_str = rxd_bytes.decode()
+                rxd_packet_str = rxd_bytes.decode()  # !!!
 
                 if len(rxd_packet_str) != 12:
 
-                    # raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not
+                    raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not
                     # equal to 12
-                    print("Length problem [4]")
 
                 else:  # go on
                     packet_CRC8 = Compute_CRC8(rxd_packet_str[0:9], CRC8_lookuptable, 0)
 
                     if packet_CRC8 != rxd_packet_str[9::]:
-                        print("CRC-8 issue [4]")
+                        raise MySimpleProtocolCRC8
 
                     else:  # go on
 
-                        status = rxd_packet_str[5:8]
-                        print(status)
+                        MSP_status = rxd_packet_str[5:8]
 
-                        if status == "NOK":
-                            print("NOK received [4]")
+                        if MSP_status == "NOK":
+                            raise MySimpleProtocolStatus
 
-                        elif status == "BSY":
-                            print("BSY received [4]")
+                        elif MSP_status == "BSY":
+                            pass
 
-                        elif status == "OK_":
-                            print('OK_ received [transmission valid]')
+                        elif MSP_status == "OK_":
+                            pass    # nothing to do, transmission finished
 
                         else:
-                            print("No supported Status received [4]")
+                            raise MySimpleProtocolStatus
         else:
-
-            print("CRC-8 issue [4]")
+            raise MySimpleProtocolCRC8

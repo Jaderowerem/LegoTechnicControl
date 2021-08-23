@@ -8,7 +8,7 @@ from Help import *  # from Help import everything
 from MySimpleProtocol_ZigBee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.2.29"
+myProjectVersion = "0.2.30"
 file_serial_read_path = ""
 
 
@@ -113,32 +113,36 @@ def runApp():
     app_zigbee_tab_addrA_text = sg.Text("Address of module A", pad=((0, 50), (30, 0)))
     app_zigbee_tab_addrB_text = sg.Text("Address of module B", pad=((0, 0), (30, 0)))
 
-    app_msp_tab_obj_database_text = sg.Text("Objects", pad=((10, 0), (10, 0)))
     app_msp_tab_obj_names_text = sg.Text("Object name - label value", pad=((10, 0), (10, 0)))
-    app_msp_tab_obj_adding_object_text = sg.Text("Add new object: obj-label value", pad=((120, 0), (10, 0)))
-    app_msp_tab_transmission_text = sg.Text("MySimpleProtocol", pad=((10, 0), (20, 0)))
+    app_msp_tab_obj_adding_object_text = sg.Text("Object-label value", pad=((10, 0), (10, 0)))
     app_msp_tab_obj_value_text = sg.Text("Insert object value", pad=((10, 0), (10, 0)))
 
     app_msp_tab_obj_names_label_val = []
 
-    app_msp_tab_adding_obj_input = sg.Input(key='Adding new object', size=(30, 1), pad=((60, 0), (0, 80)))
+    app_msp_tab_adding_obj_input = sg.Input(key='Adding new object', size=(30, 1), pad=((10, 10), (0, 0)))
     app_msp_tab_value_obj_input = sg.Input(key='Inserting obj value', size=(14, 1), pad=((10, 0), (0, 0)))
     app_msp_tab_listbox = sg.Listbox(app_msp_tab_obj_names_label_val, default_values=[""], size=(25, 5),
-                                     enable_events=True, key="OBJ NAMES", pad=((10, 0), (0, 0)))
+                                     enable_events=True, key="OBJ NAMES", pad=((10, 10), (0, 10)))
 
-    app_msp_tab_add_obj_button = sg.Button("ADD OBJECT", pad=((10, 10), (10, 0)))
-    app_msp_tab_rm_obj_button = sg.Button("REMOVE OBJECT", pad=((0, 0), (10, 0)))
+    app_msp_tab_add_obj_button = sg.Button("ADD OBJECT", pad=((10, 10), (10, 10)))
+    app_msp_tab_rm_obj_button = sg.Button("REMOVE OBJECT", pad=((0, 0), (10, 10)))
     app_msp_tab_send_msp_button = sg.Button("SEND (MSP)", pad=((20, 0), (0, 5)))
 
-    app_msp_tab_trans_status = sg.Multiline(key='-TRANSMISSION STATUS-', size=(10, 4), pad=((0, 0), (0, 0)))
+    app_msp_tab_trans_status = sg.Text("No transmission started yet", size=(25, 1), pad=((10, 0), (0, 0)))
 
-    app_msp_frame1 = sg.Frame("Test Frame", layout=[[app_msp_tab_obj_database_text], [app_msp_tab_obj_names_text,
-                                                                                      app_msp_tab_obj_adding_object_text],
-                                                    [app_msp_tab_listbox, app_msp_tab_adding_obj_input],
-                                                    [app_msp_tab_add_obj_button, app_msp_tab_rm_obj_button],
-                                                    [app_msp_tab_transmission_text], [app_msp_tab_obj_value_text],
-                                                    [app_msp_tab_value_obj_input, app_msp_tab_send_msp_button,
-                                                     app_msp_tab_trans_status]])
+    app_msp_frame1 = sg.Frame("Objects", layout=[[app_msp_tab_obj_names_text],
+                                                 [app_msp_tab_listbox]],
+                              pad=((10, 10), (10, 0)))
+
+    app_msp_frame2 = sg.Frame("Add new object",
+                              layout=[[app_msp_tab_obj_adding_object_text], [app_msp_tab_adding_obj_input],
+                                      [app_msp_tab_add_obj_button,
+                                       app_msp_tab_rm_obj_button]], pad=((0, 0), (0, 30)))
+
+    app_msp_frame3 = sg.Frame("MySimpleProtocol (MSP)", layout=[[app_msp_tab_obj_value_text],
+                                                                [app_msp_tab_value_obj_input,
+                                                                 app_msp_tab_send_msp_button,
+                                                                 app_msp_tab_trans_status]], pad=((10, 10), (10, 10)))
 
     """
     2.
@@ -158,7 +162,8 @@ def runApp():
                                                                   app_zigbee_tab_addrA_text, app_zigbee_tab_addrB_text],
                              [app_zigbee_tab_commands, app_zigbee_tab_addrA_input, app_zigbee_tab_addrB_input]]
 
-    app_msp_tab_layout = [[app_msp_frame1]]
+    app_msp_tab_layout = [[app_msp_frame1, app_msp_frame2],
+                          [app_msp_frame3]]
     """
     3.
     """
@@ -252,8 +257,6 @@ def runApp():
             else:
 
                 serial_port_send_command(uart[device], txd_data)
-                #   MySimpleProtocol_transmit(txd_data, "CTRL", "8DF3", "0000",  device)    # test
-                # for MySimpleProtocol for ZigBee
 
         elif event == "FILE TO RECORD DATA":
 
@@ -313,6 +316,23 @@ def runApp():
 
         elif event == "REMOVE OBJECT":
             pass
+
+        elif event == "SEND (MSP)":
+
+            try:
+                MySimpleProtocol_transmit("10 100", "CTRL", "8DF3", "0000", device)  # test
+
+            except MySimpleProtocolDataLength:
+                app_msp_tab_trans_status.update("Packet length problem", text_color="red")  # update transmission status
+
+            except MySimpleProtocolCRC8:
+                app_msp_tab_trans_status.update("Incorrect CRC-8 received", text_color="red")
+
+            except MySimpleProtocolStatus:
+                app_msp_tab_trans_status.update("NOK or unsupported status received", text_color="red")
+
+            else:
+                app_msp_tab_trans_status.update("OK", text_color="green")
 
     app_window.close()
     del app_window
