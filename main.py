@@ -8,7 +8,7 @@ from Help import *  # from Help import everything
 from MySimpleProtocol_ZigBee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.2.30"
+myProjectVersion = "0.3.0"
 file_serial_read_path = ""
 
 
@@ -36,12 +36,32 @@ def runApp():
     use Multiline objects instead of Output, it resolves problem regarding print() in built function
     when more than one Window object is being used
     """
-    app_main_menu = sg.Menu(menu_def, tearoff=False, pad=(200, 1), key='-MAIN_MENU-')
-    app_window_receive_text = sg.Text("Receive window", pad=(0, 5))
-    app_window_receive = sg.Multiline(key='-RECEIVE-', size=(50, 6))
-    app_window_transmit_text = sg.Text("Send window", pad=(0, 5))
-    app_window_transmit = sg.Input(key='-TRANSMIT-', size=(50, 1), pad=(0, 0))
 
+    """
+    Main UI 
+    """
+    app_main_menu = sg.Menu(menu_def, tearoff=False, pad=(200, 1), key='-MAIN_MENU-')
+    app_window_receive = sg.Multiline(key='-RECEIVE-', size=(50, 6), pad=((10, 10), (10, 10)))
+    app_window_transmit = sg.Input(key='-TRANSMIT-', size=(50, 1), pad=((10, 10), (10, 10)))
+
+    app_window_frame1 = sg.Frame("Receive window", layout=[[app_window_receive]],
+                                 pad=((10, 10), (10, 10)),
+                                 element_justification="center",
+                                 vertical_alignment="center"
+                                 )
+
+    app_window_frame2 = sg.Frame("Send window", layout=[[app_window_transmit]],
+                                 pad=((10, 10), (0, 10)),
+                                 element_justification="center",
+                                 vertical_alignment="center"
+                                 )
+
+    app_window_frame = sg.Frame("Transmission", layout=[[app_window_frame1],
+                                                        [app_window_frame2]],
+                                pad=((10, 10), (10, 10)),
+                                element_justification="center",
+                                vertical_alignment="center"
+                                )
     """
     Creating tab, elements inside tab and setting layout
     
@@ -54,22 +74,44 @@ def runApp():
     """
     1.
     """
+
+    """
+    Serial port UI 
+    """
     app_serial_port_tab_file_section = sg.Text(" File ", pad=(0, 10))
     app_serial_port_tab_file_to_send = sg.Button("FILE TO SEND", size=(14, 1), pad=(10, 10))
     app_serial_port_tab_send_file = sg.Button("SEND FILE", size=(12, 1), pad=(10, 0))
     app_serial_port_tab_file_to_record = sg.Button("FILE TO RECORD DATA", size=(22, 1), pad=(0, 0))
     app_serial_port_tab_read_to_file = sg.Button("READ TO FILE", size=(14, 1), pad=(0, 0))
     app_serial_port_tab_close_file = sg.Button("CLOSE FILE", size=(15, 1), pad=(10, 0))
-    app_serial_port_tab_send_message = sg.Button("SEND", size=(12, 1), pad=((40, 0), (0, 0)), key="SEND")
+    app_serial_port_tab_send_button = sg.Button("SEND", size=(12, 1), pad=((10, 10), (10, 10)), key="SEND")
     # key defines name of events and values (key of dictionary)
-    app_serial_port_tab_read = sg.Button("READ", size=(12, 1), pad=((20, 0), (90, 0)), key="READ")
-    app_serial_port_tab_devices_text = sg.Text(" Device ", pad=((505, 0), (0, 0)))
+    app_serial_port_tab_read_button = sg.Button("READ", size=(12, 1), pad=((10, 10), (10, 10)), key="READ")
 
     app_serial_port_devices = ["Device A", "Device B"]
 
-    app_serial_port_tab_devices = sg.Listbox(app_serial_port_devices, default_values=["Device A"], size=(9, 3),
-                                             enable_events=True, key="DEVICE ON PORT", pad=((20, 10), (0, 55)))
+    app_serial_port_tab_devices_list = sg.Listbox(app_serial_port_devices, default_values=["Device A"], size=(9, 3),
+                                                  enable_events=True, key="DEVICE ON PORT", pad=((10, 10), (10, 10)))
 
+    app_serial_port_devices_frame = sg.Frame("Device", layout=[[app_serial_port_tab_devices_list]],
+                                             pad=((10, 10), (10, 10)),
+                                             element_justification="center",
+                                             vertical_alignment="center")
+
+    app_serial_port_buttons_frame = sg.Frame("", layout=[[app_serial_port_tab_send_button],
+                                                         [app_serial_port_tab_read_button]],
+                                             pad=((10, 10), (10, 10)),
+                                             element_justification="center",
+                                             vertical_alignment="center")
+
+    app_serial_port_buttons_devices_frame = sg.Frame("", layout=[[app_serial_port_devices_frame],
+                                                                 [app_serial_port_buttons_frame]],
+                                                     pad=((10, 10), (10, 10)),
+                                                     element_justification="center",
+                                                     vertical_alignment="center")
+    """
+    ZigBee UI 
+    """
     zigbee_serial_ports = ['COM0', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7',
                            'COM8', 'COM9', 'COM10', 'COM11', 'COM12', 'COM13', 'COM14',
                            'COM15', 'COM16', 'COM17', 'COM18', 'COM19']
@@ -79,71 +121,88 @@ def runApp():
     zigbee_signal_channel = ['11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21',
                              '22', '23', '24', '25', '26']
 
-    app_zigbee_tab_serial_channel = sg.Listbox(zigbee_serial_ports, default_values=['COM0'], size=(7, 5),
-                                               enable_events=True, key="ZIGBEE_SETTING_PORT", pad=((10, 40), (0, 0)))
+    app_zigbee_tab_serial_port_list = sg.Listbox(zigbee_serial_ports, default_values=['COM0'], size=(7, 5),
+                                                 enable_events=True, key="ZIGBEE_SETTING_PORT",
+                                                 pad=((10, 10), (10, 10)))
 
-    app_zigbee_tab_serial_baudrate = sg.Listbox(zigbee_baudrate, default_values=['9600'], size=(7, 5),
-                                                enable_events=True, key="ZIGBEE_SETTING_BAUDRATE",
-                                                pad=((0, 40), (0, 0)))
+    app_zigbee_tab_serial_baudrate_list = sg.Listbox(zigbee_baudrate, default_values=['9600'], size=(7, 5),
+                                                     enable_events=True, key="ZIGBEE_SETTING_BAUDRATE",
+                                                     pad=((10, 10), (10, 10)))
 
-    app_zigbee_tab_signal_channel = sg.Listbox(zigbee_signal_channel, default_values=['11'], size=(7, 5),
-                                               enable_events=True, key="ZIGBEE_SETTING_CHANNEL", pad=((0, 40), (0, 0)))
+    app_zigbee_tab_signal_channel_list = sg.Listbox(zigbee_signal_channel, default_values=['11'], size=(7, 5),
+                                                    enable_events=True, key="ZIGBEE_SETTING_CHANNEL",
+                                                    pad=((10, 10), (10, 10)))
 
-    app_zigbee_tab_panid_input = sg.Input(key='ZIGBEE_SET_PANID', size=(10, 1), pad=((0, 10), (0, 80)))
-    app_zigbee_tab_addrA_input = sg.Input(key='ZIGBEE_ADDR_A', size=(10, 1), pad=((0, 100), (10, 0)))
-    app_zigbee_tab_addrB_input = sg.Input(key='ZIGBEE_ADDR_B', size=(10, 1), pad=((0, 0), (10, 0)))
+    app_zigbee_tab_panid_input = sg.Input(key='ZIGBEE_SET_PANID', size=(10, 1), pad=((10, 10), (10, 10)))
+    app_zigbee_tab_addrA_input = sg.Input(key='ZIGBEE_ADDR_A', size=(10, 1), pad=((10, 10), (10, 10)))
+    app_zigbee_tab_addrB_input = sg.Input(key='ZIGBEE_ADDR_B', size=(10, 1), pad=((10, 10), (10, 10)))
 
-    app_zigbee_button_menu_commands = ["UNUSED", ["RESTART MODULE", "SET FACTORY SETTINGS", "SET SERIAL PORT",
-                                                  "SET SIGNAL CHANNEL", "SET PANID", "GET CONFIGURATION",
-                                                  "GET SERIAL PORT", "GET SIGNAL CHANNEL", "GET PANID",
-                                                  "GET SHORT ADDRESS OF THE DEVICE", "GET SHORT PARENT ADDRESS",
-                                                  "GET DEVICE IEEE ADDRESS", "GET PARENT IEEE ADDRESS",
-                                                  "PACKET FROM MODULE A TO B", "PACKET FROM MODULE B TO A"]]
+    app_zigbee_tab_menubutton_commands_set = ["UNUSED", ["RESTART MODULE", "SET FACTORY SETTINGS", "SET SERIAL PORT",
+                                                         "SET SIGNAL CHANNEL", "SET PANID", "GET CONFIGURATION",
+                                                         "GET SERIAL PORT", "GET SIGNAL CHANNEL", "GET PANID",
+                                                         "GET SHORT ADDRESS OF THE DEVICE", "GET SHORT PARENT ADDRESS",
+                                                         "GET DEVICE IEEE ADDRESS", "GET PARENT IEEE ADDRESS",
+                                                         "PACKET FROM MODULE A TO B", "PACKET FROM MODULE B TO A"]]
 
-    app_zigbee_tab_commands = sg.ButtonMenu("ZigBee command", menu_def=app_zigbee_button_menu_commands,
-                                            pad=((10, 230), (10, 0)), key="ZIGBEE_COMMAND")
+    app_zigbee_tab_menubutton_commands = sg.ButtonMenu("ZigBee commands",
+                                                       menu_def=app_zigbee_tab_menubutton_commands_set,
+                                                       pad=((10, 10), (10, 10)), key="ZIGBEE_COMMAND")
 
-    app_zigbee_tab_serial_channel_text = sg.Text(" Serial channel", pad=(0, 10))
-    app_zigbee_tab_serial_baudrate_text = sg.Text("Baud rate", pad=(20, 10))
-    app_zigbee_tab_signal_channel_text = sg.Text("Signal channel", pad=((20, 0), (0, 0)))
-    app_zigbee_tab_signal_panid_text = sg.Text("PANID", pad=((50, 0), (0, 0)))
-    app_zigbee_tab_signal_panid_info = sg.Text("Set address 0000 - 3FFE", pad=((0, 0), (0, 80)))
-    # pad: ((distance from left corner of element, distance from right corner), (go down, go up))
-    app_zigbee_tab_commands_text = sg.Text("Commands", pad=((10, 225), (30, 0)))
-    app_zigbee_tab_addrA_text = sg.Text("Address of module A", pad=((0, 50), (30, 0)))
-    app_zigbee_tab_addrB_text = sg.Text("Address of module B", pad=((0, 0), (30, 0)))
+    app_zigbee_tab_panid_text = sg.Text("Set address 0000 - 3FFE", pad=((0, 10), (10, 10)))
+    # pad: ((distance from left corner of element, distance from right corner), (distance from floor, dist. from top))
 
-    app_msp_tab_obj_names_text = sg.Text("Object name - label value", pad=((10, 0), (10, 0)))
-    app_msp_tab_obj_adding_object_text = sg.Text("Object-label value", pad=((10, 0), (10, 0)))
+    app_zigbee_conf_frame1 = sg.Frame("Baud rate", layout=[[app_zigbee_tab_serial_baudrate_list]],
+                                      pad=((10, 10), (10, 10)))
+    app_zigbee_conf_frame2 = sg.Frame(" Serial port", layout=[[app_zigbee_tab_serial_port_list]],
+                                      pad=((10, 10), (10, 10)))
+    app_zigbee_conf_frame3 = sg.Frame("RF channel", layout=[[app_zigbee_tab_signal_channel_list]],
+                                      pad=((10, 10), (10, 10)))
+    app_zigbee_conf_frame4 = sg.Frame("PANID", layout=[[app_zigbee_tab_panid_input,
+                                                        app_zigbee_tab_panid_text]],
+                                      pad=((10, 10), (10, 10)))
+
+    app_zigbee_conf_frame = sg.Frame("ZigBee module settings", layout=[[app_zigbee_conf_frame1,
+                                                                        app_zigbee_conf_frame2,
+                                                                        app_zigbee_conf_frame3,
+                                                                        app_zigbee_conf_frame4]],
+                                     pad=((10, 10), (10, 10)))
+
+    app_zigbee_addr_frame1 = sg.Frame("Address of module A", layout=[[app_zigbee_tab_addrA_input]],
+                                      pad=((10, 10), (10, 10)))
+
+    app_zigbee_addr_frame2 = sg.Frame("Address of module B", layout=[[app_zigbee_tab_addrB_input]],
+                                      pad=((10, 10), (10, 10)))
+
+    app_zigbee_addr_frame = sg.Frame("ZigBee addresses", layout=[[app_zigbee_addr_frame1,
+                                                                  app_zigbee_addr_frame2]],
+                                     pad=((10, 10), (10, 10)))
+
+    app_zigbee_commands_frame = sg.Frame("ZigBee commands", layout=[[app_zigbee_tab_menubutton_commands]],
+                                         pad=((10, 10), (10, 10)))
+    """
+    MSP UI
+    """
+    app_msp_tab_obj_names_text = sg.Text("Object name", pad=((10, 0), (10, 0)))
     app_msp_tab_obj_value_text = sg.Text("Insert object value", pad=((10, 0), (10, 0)))
 
-    app_msp_tab_obj_names_label_val = []
+    app_msp_tab_obj_names_label_val = ['test1Obj', 'test2Obj']  # the reflection of MSP_Obj_database keys
 
-    app_msp_tab_adding_obj_input = sg.Input(key='Adding new object', size=(30, 1), pad=((10, 10), (0, 0)))
     app_msp_tab_value_obj_input = sg.Input(key='Inserting obj value', size=(14, 1), pad=((10, 0), (0, 0)))
-    app_msp_tab_listbox = sg.Listbox(app_msp_tab_obj_names_label_val, default_values=[""], size=(25, 5),
-                                     enable_events=True, key="OBJ NAMES", pad=((10, 10), (0, 10)))
+    app_msp_tab_listbox = sg.Listbox(app_msp_tab_obj_names_label_val, default_values=["test1Obj"], size=(25, 5),
+                                     enable_events=True, key="Obj_Name", pad=((10, 10), (0, 10)))
 
-    app_msp_tab_add_obj_button = sg.Button("ADD OBJECT", pad=((10, 10), (10, 10)))
-    app_msp_tab_rm_obj_button = sg.Button("REMOVE OBJECT", pad=((0, 0), (10, 10)))
     app_msp_tab_send_msp_button = sg.Button("SEND (MSP)", pad=((20, 0), (0, 5)))
 
-    app_msp_tab_trans_status = sg.Text("No transmission started yet", size=(25, 1), pad=((10, 0), (0, 0)))
+    app_msp_tab_trans_status = sg.Text("No transmission started yet", size=(25, 2), pad=((10, 0), (0, 0)))
 
     app_msp_frame1 = sg.Frame("Objects", layout=[[app_msp_tab_obj_names_text],
                                                  [app_msp_tab_listbox]],
                               pad=((10, 10), (10, 0)))
 
-    app_msp_frame2 = sg.Frame("Add new object",
-                              layout=[[app_msp_tab_obj_adding_object_text], [app_msp_tab_adding_obj_input],
-                                      [app_msp_tab_add_obj_button,
-                                       app_msp_tab_rm_obj_button]], pad=((0, 0), (0, 30)))
-
-    app_msp_frame3 = sg.Frame("MySimpleProtocol (MSP)", layout=[[app_msp_tab_obj_value_text],
+    app_msp_frame2 = sg.Frame("MySimpleProtocol (MSP)", layout=[[app_msp_tab_obj_value_text],
                                                                 [app_msp_tab_value_obj_input,
                                                                  app_msp_tab_send_msp_button,
                                                                  app_msp_tab_trans_status]], pad=((10, 10), (10, 10)))
-
     """
     2.
     """
@@ -153,17 +212,11 @@ def runApp():
                                    app_serial_port_tab_close_file],
                                   ]
 
-    app_zigbee_tab_layout = [[app_zigbee_tab_serial_channel_text, app_zigbee_tab_serial_baudrate_text,
-                              app_zigbee_tab_signal_channel_text,
-                              app_zigbee_tab_signal_panid_text],
-                             [app_zigbee_tab_serial_channel, app_zigbee_tab_serial_baudrate,
-                              app_zigbee_tab_signal_channel, app_zigbee_tab_panid_input,
-                              app_zigbee_tab_signal_panid_info], [app_zigbee_tab_commands_text,
-                                                                  app_zigbee_tab_addrA_text, app_zigbee_tab_addrB_text],
-                             [app_zigbee_tab_commands, app_zigbee_tab_addrA_input, app_zigbee_tab_addrB_input]]
+    app_zigbee_tab_layout = [[app_zigbee_conf_frame],
+                             [app_zigbee_addr_frame, app_zigbee_commands_frame]]
 
-    app_msp_tab_layout = [[app_msp_frame1, app_msp_frame2],
-                          [app_msp_frame3]]
+    app_msp_tab_layout = [[app_msp_frame1],
+                          [app_msp_frame2]]
     """
     3.
     """
@@ -186,10 +239,7 @@ def runApp():
 
     app_main_layout = [
         [app_main_menu],
-        [app_window_receive_text, app_serial_port_tab_devices_text],
-        [app_window_receive, app_serial_port_tab_read, app_serial_port_tab_devices],
-        [app_window_transmit_text],
-        [app_window_transmit, app_serial_port_tab_send_message],
+        [app_window_frame, app_serial_port_buttons_devices_frame],
         [app_tab_group]
     ]
     """
@@ -276,7 +326,6 @@ def runApp():
             if os.path.isfile(file_serial_read_path):  # first check if the file exists
 
                 serial_port_read_to_file(uart[device], file_serial_read, 100)
-
             else:
 
                 app_window["-RECEIVE-"].update("The file does not exist !!!")
@@ -299,28 +348,16 @@ def runApp():
 
             get_zigbee_command(values, app_window_transmit)
 
-        elif event == "ADD OBJECT":
-
-            obj = app_msp_tab_adding_obj_input.get()
-            inx = obj.find("-")
-            obj_name = obj[0:inx]
-            new_key = obj[(inx + 1)::]
-
-            """
-            Add a new object to the data base
-            """
-            app_msp_tab_obj_names_label_val.append(obj)
-            app_msp_tab_listbox.update(app_msp_tab_obj_names_label_val)
-            MSP_Obj_database[new_key] = obj_name  # for dictionary, there is no append(), add() , etc function,
-            # this is the way to add new elements to dictionary
-
-        elif event == "REMOVE OBJECT":
-            pass
-
         elif event == "SEND (MSP)":
 
+            ObjVal = app_msp_tab_value_obj_input.get()
+            ObjName = ''.join(values["Obj_Name"])   # converts tuple or list or dictionary into string
+
+            print(MSP_Obj_database[ObjName] + " " + ObjVal)
+
             try:
-                MySimpleProtocol_transmit("10 100", "CTRL", "8DF3", "0000", device)  # test
+                MySimpleProtocol_transmit(MSP_Obj_database[ObjName] + " " + ObjVal, "CTRL", "8DF3",
+                                          "0000", device)  # test
 
             except MySimpleProtocolDataLength:
                 app_msp_tab_trans_status.update("Packet length problem", text_color="red")  # update transmission status

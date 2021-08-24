@@ -5,9 +5,9 @@ import PySimpleGUI as sg
 def serial_port_config(gui_event: tuple, gui_values: tuple, window: PySimpleGUI.Window,
                        text_output: PySimpleGUI.Multiline):
 
-    com_port = ''.join(gui_values[0])  # converts tuple or list into string
-    baud = ''.join(gui_values[1])  # converts tuple or list into string
-    device = ''.join(gui_values[2])  # converts tuple or list into string
+    com_port = ''.join(gui_values[0])  # converts tuple or list or dictionary into string
+    baud = ''.join(gui_values[1])  # converts tuple or list or dictionary into string
+    device = ''.join(gui_values[2])  # converts tuple or list or dictionary into string
 
     if gui_event == 'OPEN PORT':
 
