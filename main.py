@@ -1,4 +1,3 @@
-import PySimpleGUI
 import time
 import os.path
 
@@ -8,8 +7,7 @@ from Help import *  # from Help import everything
 from MySimpleProtocol_ZigBee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.3.0"
-file_serial_read_path = ""
+myProjectVersion = "0.3.4"
 
 
 def runApp():
@@ -17,8 +15,6 @@ def runApp():
     RunApp is the main process of the GUI application, here other components
     will be added
     """
-
-    global file_serial_read_path  # the global variable is going to be edited inside the module
 
     Calculate_CRC8_lookUpTable(CRC8_lookuptable, 0xA7, "decimal")  # fill up CRC-8 look up table
 
@@ -74,7 +70,10 @@ def runApp():
     """
     1.
     """
-
+    """
+    App pictures
+    """
+    app_picture1 = sg.Image(filename="picture1.PNG")
     """
     Serial port UI 
     """
@@ -99,13 +98,15 @@ def runApp():
                                              vertical_alignment="center")
 
     app_serial_port_buttons_frame = sg.Frame("", layout=[[app_serial_port_tab_send_button],
-                                                         [app_serial_port_tab_read_button]],
+                                                         [app_serial_port_tab_read_button]
+                                                         ],
                                              pad=((10, 10), (10, 10)),
                                              element_justification="center",
                                              vertical_alignment="center")
 
     app_serial_port_buttons_devices_frame = sg.Frame("", layout=[[app_serial_port_devices_frame],
-                                                                 [app_serial_port_buttons_frame]],
+                                                                 [app_serial_port_buttons_frame],
+                                                                 ],
                                                      pad=((10, 10), (10, 10)),
                                                      element_justification="center",
                                                      vertical_alignment="center")
@@ -187,22 +188,74 @@ def runApp():
 
     app_msp_tab_obj_names_label_val = ['test1Obj', 'test2Obj']  # the reflection of MSP_Obj_database keys
 
-    app_msp_tab_value_obj_input = sg.Input(key='Inserting obj value', size=(14, 1), pad=((10, 0), (0, 0)))
+    app_msp_tab_simple_input = sg.Input(key='Simple_obj_value', size=(14, 1), pad=((10, 0), (0, 0)))
+
+    app_msp_tab_multi_start = sg.Input(key='Multi_start_obj_value', size=(14, 1), pad=((10, 10), (10, 10)))
+    app_msp_tab_multi_stop = sg.Input(key='Multi_stop_obj_value', size=(14, 1), pad=((10, 10), (10, 10)))
+    app_msp_tab_multi_step = sg.Input(key='Multi_step_obj_value', size=(14, 1), pad=((10, 10), (10, 10)))
+    app_msp_tab_multi_loop = sg.Input(key='Multi_loop', size=(6, 1), pad=((10, 10), (10, 10)))
+    app_msp_tab_multi_dwellTime = sg.Input(key='Multi_dwellTime', size=(6, 1), pad=((10, 10), (10, 10)))
+
     app_msp_tab_listbox = sg.Listbox(app_msp_tab_obj_names_label_val, default_values=["test1Obj"], size=(25, 5),
                                      enable_events=True, key="Obj_Name", pad=((10, 10), (0, 10)))
 
-    app_msp_tab_send_msp_button = sg.Button("SEND (MSP)", pad=((20, 0), (0, 5)))
+    app_msp_tab_send_msp_simple_button = sg.Button("SEND (SIMPLE)", pad=((10, 0), (10, 10)))
+    app_msp_tab_send_msp_multi_button = sg.Button("SEND (MULTI)", pad=((10, 0), (10, 10)))
 
-    app_msp_tab_trans_status = sg.Text("No transmission started yet", size=(25, 2), pad=((10, 0), (0, 0)))
+    app_msp_tab_trans_simple_status = sg.Multiline("Simple transfer status", size=(20, 2), pad=((10, 10), (10, 10)),
+                                                   justification="center")
+
+    app_msp_tab_trans_multi_status = sg.Multiline("Multiple transfer status", size=(20, 2), pad=((10, 10), (10, 10)),
+                                                  justification="center")
+
+    app_msp_tab_trans_multi_currentValue = sg.Output(size=(14, 1), pad=((10, 10), (10, 10)))
 
     app_msp_frame1 = sg.Frame("Objects", layout=[[app_msp_tab_obj_names_text],
                                                  [app_msp_tab_listbox]],
-                              pad=((10, 10), (10, 0)))
+                              pad=((10, 10), (10, 0)),
+                              vertical_alignment="top")
 
-    app_msp_frame2 = sg.Frame("MySimpleProtocol (MSP)", layout=[[app_msp_tab_obj_value_text],
-                                                                [app_msp_tab_value_obj_input,
-                                                                 app_msp_tab_send_msp_button,
-                                                                 app_msp_tab_trans_status]], pad=((10, 10), (10, 10)))
+    app_msp_simple_frame = sg.Frame("Simple transfer", layout=[[app_msp_tab_obj_value_text],
+                                                               [app_msp_tab_simple_input,
+                                                                app_msp_tab_send_msp_simple_button,
+                                                                app_msp_tab_trans_simple_status]],
+                                    pad=((10, 10), (10, 10)),
+                                    vertical_alignment="top")
+
+    app_msp_multi_start_frame = sg.Frame("Start value", layout=[[app_msp_tab_multi_start]],
+                                         pad=((10, 10), (10, 10)),
+                                         vertical_alignment="top")
+
+    app_msp_multi_stop_frame = sg.Frame("Stop value", layout=[[app_msp_tab_multi_stop]],
+                                        pad=((10, 10), (10, 10)),
+                                        vertical_alignment="top")
+
+    app_msp_multi_step_frame = sg.Frame("Step", layout=[[app_msp_tab_multi_step]],
+                                        pad=((10, 10), (10, 10)),
+                                        vertical_alignment="top")
+
+    app_msp_multi_loop_frame = sg.Frame("Loop count", layout=[[app_msp_tab_multi_loop]],
+                                        pad=((10, 10), (10, 10)),
+                                        vertical_alignment="top")
+
+    app_msp_multi_dwellTime_frame = sg.Frame("Dwell time [sec]", layout=[[app_msp_tab_multi_dwellTime]],
+                                             pad=((10, 10), (10, 10)),
+                                             vertical_alignment="top")
+
+    app_msp_multi_frame = sg.Frame("Multiple transfer", layout=[[app_msp_multi_start_frame, app_msp_multi_stop_frame,
+                                                                 app_msp_multi_step_frame],
+                                                                [app_msp_multi_loop_frame,
+                                                                 app_msp_multi_dwellTime_frame,
+                                                                 app_msp_tab_send_msp_multi_button,
+                                                                 app_msp_tab_trans_multi_status],
+                                                                [app_msp_tab_trans_multi_currentValue]
+                                                                ],
+                                   pad=((10, 10), (10, 10)),
+                                   vertical_alignment="top")
+
+    app_msp_main_frame = sg.Frame("MySimpleProtocol (MSP)", layout=[[app_msp_simple_frame], [app_msp_multi_frame]],
+                                  pad=((10, 10), (10, 10)),
+                                  vertical_alignment="top")
     """
     2.
     """
@@ -215,8 +268,8 @@ def runApp():
     app_zigbee_tab_layout = [[app_zigbee_conf_frame],
                              [app_zigbee_addr_frame, app_zigbee_commands_frame]]
 
-    app_msp_tab_layout = [[app_msp_frame1],
-                          [app_msp_frame2]]
+    app_msp_tab_layout = [[app_msp_frame1, app_msp_main_frame]]
+
     """
     3.
     """
@@ -239,7 +292,7 @@ def runApp():
 
     app_main_layout = [
         [app_main_menu],
-        [app_window_frame, app_serial_port_buttons_devices_frame],
+        [app_window_frame, app_serial_port_buttons_devices_frame, app_picture1],
         [app_tab_group]
     ]
     """
@@ -247,8 +300,8 @@ def runApp():
     """
     app_window = sg.Window('LEGO Technic PC control',
                            app_main_layout,
-                           default_element_size=(15, 1),
-                           default_button_element_size=(12, 1), size=(800, 700))
+                           default_element_size=(10, 1),
+                           default_button_element_size=(12, 1), size=(1000, 1000))
 
     # ------ Loop & Process button menu choices ------ #
     while True:
@@ -348,28 +401,107 @@ def runApp():
 
             get_zigbee_command(values, app_window_transmit)
 
-        elif event == "SEND (MSP)":
+        elif event == "SEND (SIMPLE)":
+            #   print(MSP_Obj_database[ObjName] + " " + ObjVal)
 
-            ObjVal = app_msp_tab_value_obj_input.get()
-            ObjName = ''.join(values["Obj_Name"])   # converts tuple or list or dictionary into string
+            if uart[device].isOpen():
 
-            print(MSP_Obj_database[ObjName] + " " + ObjVal)
+                ObjVal = app_msp_tab_simple_input.get()
+                ObjName = ''.join(values["Obj_Name"])  # converts tuple or list or dictionary into string
 
-            try:
-                MySimpleProtocol_transmit(MSP_Obj_database[ObjName] + " " + ObjVal, "CTRL", "8DF3",
-                                          "0000", device)  # test
+                try:
+                    MySimpleProtocol_transmit(MSP_Obj_database[ObjName] + " " + ObjVal, "CTRL", "8DF3",
+                                              "0000", device)  # test
 
-            except MySimpleProtocolDataLength:
-                app_msp_tab_trans_status.update("Packet length problem", text_color="red")  # update transmission status
+                except MySimpleProtocolDataLength:
+                    app_msp_tab_trans_simple_status.update('')  # clear window
+                    app_msp_tab_trans_simple_status.update("Packet length problem",
+                                                           text_color="red")  # update transmission status
 
-            except MySimpleProtocolCRC8:
-                app_msp_tab_trans_status.update("Incorrect CRC-8 received", text_color="red")
+                except MySimpleProtocolCRC8:
+                    app_msp_tab_trans_simple_status.update('')  # clear window
+                    app_msp_tab_trans_simple_status.update("Incorrect CRC-8 received", text_color="red")
 
-            except MySimpleProtocolStatus:
-                app_msp_tab_trans_status.update("NOK or unsupported status received", text_color="red")
+                except MySimpleProtocolStatusNok:
+                    app_msp_tab_trans_simple_status.update('')  # clear window
+                    app_msp_tab_trans_simple_status.update("NOK status received", text_color="red")
 
+                except MySimpleProtocolStatusUnsupported:
+                    app_msp_tab_trans_simple_status.update('')  # clear window
+                    app_msp_tab_trans_simple_status.update("Unsupported status received", text_color="red")
+
+                else:
+                    app_msp_tab_trans_simple_status.update('')  # clear window
+                    app_msp_tab_trans_simple_status.update("OK", text_color="green")
             else:
-                app_msp_tab_trans_status.update("OK", text_color="green")
+                app_msp_tab_trans_simple_status.update('')  # clear window
+                app_msp_tab_trans_simple_status.update("Serial port is not opened !", text_color="yellow")
+
+        elif event == "SEND (MULTI)":
+
+            if uart[device].isOpen():
+
+                loopCount = int(app_msp_tab_multi_loop.get())
+                dwellTime = float(app_msp_tab_multi_dwellTime.get())
+                startVal = int(app_msp_tab_multi_start.get())
+                stopVal = int(app_msp_tab_multi_stop.get())
+                stepVal = int(app_msp_tab_multi_step.get())
+
+                #   print("loopCount: ", loopCount)
+                #   print("dwellTime: ", dwellTime)
+                #   print("startVal: ", startVal)
+                #   print("stopVal: ", stopVal)
+                #   print("stepVal : ", stepVal)
+
+                ObjName = ''.join(values["Obj_Name"])  # converts tuple or list or dictionary into string
+
+                app_msp_tab_trans_multi_currentValue.update('')  # clear window
+
+                while loopCount > 0:
+
+                    loopCount -= 1
+
+                    for val in range(startVal, stopVal, stepVal):
+
+                        val_str = str(val)
+
+                        # show current object value
+                        #   app_msp_tab_trans_multi_currentValue.update(val_str)
+                        print(val_str)
+
+                        try:
+                            MySimpleProtocol_transmit(MSP_Obj_database[ObjName] + " " + val_str, "CTRL", "8DF3",
+                                                      "0000", device)  # test
+                            #   print(MSP_Obj_database[ObjName] + " " + val_str)
+
+                        except MySimpleProtocolDataLength:
+                            app_msp_tab_trans_multi_status.update('')
+                            app_msp_tab_trans_multi_status.update("Packet length problem",
+                                                                  text_color="red")  # update transmission status
+                            break
+                        except MySimpleProtocolCRC8:
+                            app_msp_tab_trans_multi_status.update('')
+                            app_msp_tab_trans_multi_status.update("Incorrect CRC-8 received", text_color="red")
+                            break
+
+                        except MySimpleProtocolStatusNok:
+                            app_msp_tab_trans_multi_status.update('')
+                            app_msp_tab_trans_multi_status.update("NOK status received", text_color="red")
+                            break
+
+                        except MySimpleProtocolStatusUnsupported:
+                            app_msp_tab_trans_multi_status.update('')
+                            app_msp_tab_trans_multi_status.update("Unsupported status received", text_color="red")
+                            break
+
+                        else:
+                            app_msp_tab_trans_multi_status.update('')
+                            app_msp_tab_trans_multi_status.update("OK", text_color="green")
+
+                        time.sleep(dwellTime)  # delay period
+            else:
+                app_msp_tab_trans_multi_status.update('')
+                app_msp_tab_trans_multi_status.update("Serial port is not opened !", text_color="yellow")
 
     app_window.close()
     del app_window

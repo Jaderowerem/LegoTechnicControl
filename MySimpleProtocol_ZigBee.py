@@ -29,9 +29,16 @@ class MySimpleProtocolCRC8(Exception):
     pass
 
 
-class MySimpleProtocolStatus(Exception):
+class MySimpleProtocolStatusNok(Exception):
     """
     Raised when NOK status has been received
+    """
+    pass
+
+
+class MySimpleProtocolStatusUnsupported(Exception):
+    """
+    Raised when unsupported status field has been received
     """
     pass
 
@@ -265,105 +272,108 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, destination_add
     1)  Send Start transmission packet to inform receiver about transmission type and following 
     number of bytes to receive for data field
     """
-    uart[uart_device].reset_input_buffer()
+    if uart[uart_device].isOpen():
+        uart[uart_device].reset_input_buffer()
 
-    Data_length = get_length_of_data(data)
-    Encoded_Data_length = ""
+        Data_length = get_length_of_data(data)
+        Encoded_Data_length = ""
 
-    if Data_length < 10:
-        Encoded_Data_length = "00" + str(Data_length)  # if there is 1 character, add 00 at the beginning
+        if Data_length < 10:
+            Encoded_Data_length = "00" + str(Data_length)  # if there is 1 character, add 00 at the beginning
 
-    elif Data_length < 100:
-        Encoded_Data_length = "0" + str(Data_length)  # if there are 2 characters, add 0 at the beginning
+        elif Data_length < 100:
+            Encoded_Data_length = "0" + str(Data_length)  # if there are 2 characters, add 0 at the beginning
 
-    elif Data_length >= 100:
-        Encoded_Data_length = str(Data_length)  # max 999 B can be transmitted !!!
+        elif Data_length >= 100:
+            Encoded_Data_length = str(Data_length)  # max 999 B can be transmitted !!!
 
-    if transmission_type == "CTRL":
-        txd_packet = source_addr + " " + "CTRL" + " " + Encoded_Data_length + " "
+        if transmission_type == "CTRL":
+            txd_packet = source_addr + " " + "CTRL" + " " + Encoded_Data_length + " "
+            """
+            CRC does not include P2P Address_ZigBee_module because these elements
+            are not visible for data readout via UART- received bytes from UART does
+            not contain ZigBee header
+            """
+            packet_CRC8 = Compute_CRC8(txd_packet, CRC8_lookuptable, 0)
+
+            # now add P2P Address_ZigBee_module at the beginning of the txd_packet
+
+            txd_packet = "P2P " + destination_addr + " " + txd_packet + packet_CRC8
+
+            # Send txd_packet via UART to ZigBee module
+            serial_port_send_command(uart[uart_device], txd_packet)
+
         """
-        CRC does not include P2P Address_ZigBee_module because these elements
-        are not visible for data readout via UART- received bytes from UART does
-        not contain ZigBee header
+        2)  Check feedback from receiver
         """
-        packet_CRC8 = Compute_CRC8(txd_packet, CRC8_lookuptable, 0)
+        rxd_bytes = uart[uart_device].read(12)
+        rxd_packet_str = rxd_bytes.decode()  # !!!
 
-        # now add P2P Address_ZigBee_module at the beginning of the txd_packet
+        if len(rxd_packet_str) != 12:
 
-        txd_packet = "P2P " + destination_addr + " " + txd_packet + packet_CRC8
+            raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not
+            # equal to 12
 
-        # Send txd_packet via UART to ZigBee module
-        serial_port_send_command(uart[uart_device], txd_packet)
+        else:  # go on
+            packet_CRC8 = Compute_CRC8(rxd_packet_str[0:9], CRC8_lookuptable, 0)
 
-    """
-    2)  Check feedback from receiver
-    """
-    rxd_bytes = uart[uart_device].read(12)
-    rxd_packet_str = rxd_bytes.decode()  # !!!
+            if packet_CRC8 == rxd_packet_str[9::]:  # go on
+                MSP_status = rxd_packet_str[5:8]
 
-    if len(rxd_packet_str) != 12:
+                if MSP_status == "NOK":
+                    raise MySimpleProtocolStatusNok
 
-        raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not
-        # equal to 12
+                elif MSP_status == "BSY":
+                    pass
 
-    else:  # go on
-        packet_CRC8 = Compute_CRC8(rxd_packet_str[0:9], CRC8_lookuptable, 0)
+                elif MSP_status != "NOK" and MSP_status != "BSY" and MSP_status != "OK_":
+                    raise MySimpleProtocolStatusUnsupported
 
-        if packet_CRC8 == rxd_packet_str[9::]:  # go on
-            MSP_status = rxd_packet_str[5:8]
+                elif MSP_status == "OK_":
+                    """
+                    3)  Go on transmission if it is still valid
+                    """
+                    # transmission is valid, go on
+                    txd_packet = source_addr + " " + data + " "
+                    packet_CRC8 = Compute_CRC8(txd_packet, CRC8_lookuptable, 0)  # calculate CRC-8 for data
+                    # prepare packet
+                    txd_packet = "P2P " + destination_addr + " " + txd_packet + packet_CRC8
+                    # Send txd_packet via UART to ZigBee module
+                    serial_port_send_command(uart[uart_device], txd_packet)
 
-            if MSP_status == "NOK":
-                raise MySimpleProtocolStatus
+                    """
+                    4)  Check feedback from receiver, if CRC-8 and status will be fine, transmission ends up and is valid
+                    """
+                    rxd_bytes = uart[uart_device].read(12)
+                    rxd_packet_str = rxd_bytes.decode()  # !!!
 
-            elif MSP_status == "BSY":
-                pass
+                    if len(rxd_packet_str) != 12:
 
-            elif MSP_status != "NOK" and MSP_status != "BSY" and MSP_status != "OK_":
-                raise MySimpleProtocolStatus
-
-            elif MSP_status == "OK_":
-                """
-                3)  Go on transmission if it is still valid
-                """
-                # transmission is valid, go on
-                txd_packet = source_addr + " " + data + " "
-                packet_CRC8 = Compute_CRC8(txd_packet, CRC8_lookuptable, 0)  # calculate CRC-8 for data
-                # prepare packet
-                txd_packet = "P2P " + destination_addr + " " + txd_packet + packet_CRC8
-                # Send txd_packet via UART to ZigBee module
-                serial_port_send_command(uart[uart_device], txd_packet)
-
-                """
-                4)  Check feedback from receiver, if CRC-8 and status will be fine, transmission ends up and is valid
-                """
-                rxd_bytes = uart[uart_device].read(12)
-                rxd_packet_str = rxd_bytes.decode()  # !!!
-
-                if len(rxd_packet_str) != 12:
-
-                    raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not
-                    # equal to 12
-
-                else:  # go on
-                    packet_CRC8 = Compute_CRC8(rxd_packet_str[0:9], CRC8_lookuptable, 0)
-
-                    if packet_CRC8 != rxd_packet_str[9::]:
-                        raise MySimpleProtocolCRC8
+                        raise MySimpleProtocolDataLength  # raise exception when received number of bytes is not
+                        # equal to 12
 
                     else:  # go on
+                        packet_CRC8 = Compute_CRC8(rxd_packet_str[0:9], CRC8_lookuptable, 0)
 
-                        MSP_status = rxd_packet_str[5:8]
+                        if packet_CRC8 != rxd_packet_str[9::]:
+                            raise MySimpleProtocolCRC8
 
-                        if MSP_status == "NOK":
-                            raise MySimpleProtocolStatus
+                        else:  # go on
 
-                        elif MSP_status == "BSY":
-                            pass
+                            MSP_status = rxd_packet_str[5:8]
 
-                        elif MSP_status == "OK_":
-                            pass    # nothing to do, transmission finished
+                            if MSP_status == "NOK":
+                                raise MySimpleProtocolStatusNok
 
-                        else:
-                            raise MySimpleProtocolStatus
-        else:
-            raise MySimpleProtocolCRC8
+                            elif MSP_status == "BSY":
+                                pass
+
+                            elif MSP_status == "OK_":
+                                pass  # nothing to do, transmission finished
+
+                            else:
+                                raise MySimpleProtocolStatusUnsupported
+            else:
+                raise MySimpleProtocolCRC8
+    else:
+        pass
