@@ -7,8 +7,8 @@ from typing import BinaryIO
   """
 
 uart = {
-    "Device A": Serial(bytesize=EIGHTBITS, timeout=0.2, write_timeout=0.2),  # device A
-    "Device B": Serial(bytesize=EIGHTBITS, timeout=0.2, write_timeout=0.2)  # device B
+    "Device A": Serial(bytesize=EIGHTBITS, timeout=0.5, write_timeout=0.5),  # device A
+    "Device B": Serial(bytesize=EIGHTBITS, timeout=0.5, write_timeout=0.5)  # device B
 }
 
 

@@ -7,7 +7,7 @@ from Help import *  # from Help import everything
 from MySimpleProtocol_ZigBee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.3.9"
+myProjectVersion = "0.3.10"
 
 
 def runApp():
@@ -542,9 +542,12 @@ def runApp():
                                 app_window["Multi_status"].update("OK", text_color="green")
 
                         time.sleep(dwellTime)  # delay period
+
             else:
                 app_window = app_window.finalize()  # according to PySimpleGui documentation
                 app_window["Multi_status"].update("Serial port is not opened !", text_color="yellow")
+
+            print("end of while loop")
 
     app_window.close()
     del app_window
