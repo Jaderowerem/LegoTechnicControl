@@ -7,7 +7,7 @@ from Help import *  # from Help import everything
 from MySimpleProtocol_ZigBee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.3.6"
+myProjectVersion = "0.3.8"
 
 
 def runApp():
@@ -201,18 +201,19 @@ def runApp():
 
     app_msp_tab_send_msp_simple_button = sg.Button("SEND (SIMPLE)", pad=((10, 0), (10, 10)))
     app_msp_tab_send_msp_multi_button = sg.Button("SEND (MULTI)", pad=((10, 0), (10, 10)))
+    app_msp_tab_interrupt_msp_multi_button = sg.Button("INTERRUPT (MULTI)", pad=((10, 0), (10, 10)))
 
-    app_msp_tab_trans_simple_status = sg.Text("Status of simple transfer", size=(15, 2),
+    app_msp_tab_trans_simple_status = sg.Text("Simple transfer status", size=(15, 3),
                                               justification="center",
                                               pad=((10, 10), (10, 0)),
                                               key="Simple_status")
 
-    app_msp_tab_trans_multi_status = sg.Text("Status of multiple transfer", size=(15, 2),
+    app_msp_tab_trans_multi_status = sg.Text("Multiple transfer status", size=(15, 3),
                                              justification="center",
                                              pad=((10, 10), (10, 0)),
                                              key="Multi_status")
 
-    app_msp_tab_trans_multi_currentValue = sg.Text("Current object value", size=(15, 2),
+    app_msp_tab_trans_multi_currentValue = sg.Text("Current object value", size=(15, 1),
                                                    justification="center",
                                                    pad=((10, 10), (10, 0)),
                                                    key="Multi_current_val")
@@ -254,6 +255,7 @@ def runApp():
                                                                 [app_msp_multi_loop_frame,
                                                                  app_msp_multi_dwellTime_frame,
                                                                  app_msp_tab_send_msp_multi_button,
+                                                                 app_msp_tab_interrupt_msp_multi_button,
                                                                  app_msp_tab_trans_multi_status],
                                                                 [app_msp_tab_trans_multi_currentValue]
                                                                 ],
@@ -308,7 +310,7 @@ def runApp():
     app_window = sg.Window('LEGO Technic PC control',
                            app_main_layout,
                            default_element_size=(10, 1),
-                           default_button_element_size=(12, 1), size=(1000, 850))
+                           default_button_element_size=(12, 1), size=(1200, 900))
 
     # ------ Loop & Process button menu choices ------ #
     while True:
@@ -475,50 +477,69 @@ def runApp():
                 in this case to reach stop value too -> stopVal = stopVal + stepVal
                 """
                 stopVal = stopVal + stepVal
+                interruptTransfer = 0
 
-                while loopCount > 0:
+                while loopCount > 0 and interruptTransfer != 1:
 
                     loopCount -= 1
 
                     for val in range(startVal, stopVal, stepVal):
 
-                        val_str = str(val)
+                        """
+                        check if interruption of multiple transfer occurred or it can be continued
+                        """
 
-                        app_window = app_window.finalize()  # according to PySimpleGui documentation
-                        app_window["Multi_current_val"].update(val_str)
+                        inter_event, inter_val = app_window.read(timeout=1)
 
-                        try:
-                            MySimpleProtocol_transmit(MSP_Obj_database[ObjName] + " " + val_str, "CTRL", "8DF3",
-                                                      "0000", device)  # test
-                            #   print(MSP_Obj_database[ObjName] + " " + val_str)
-
-                        except MySimpleProtocolDataLength:
-
+                        if inter_event == "INTERRUPT (MULTI)":
+                            interruptTransfer = 1
                             app_window = app_window.finalize()  # according to PySimpleGui documentation
-                            app_window["Multi_status"].update("Packet length problem", text_color="red")
-                            break
-
-                        except MySimpleProtocolCRC8:
-
-                            app_window = app_window.finalize()  # according to PySimpleGui documentation
-                            app_window["Multi_status"].update("Incorrect CRC-8 received", text_color="red")
-                            break
-
-                        except MySimpleProtocolStatusNok:
-
-                            app_window = app_window.finalize()  # according to PySimpleGui documentation
-                            app_window["Multi_status"].update("NOK status received", text_color="red")
-                            break
-
-                        except MySimpleProtocolStatusUnsupported:
-
-                            app_window = app_window.finalize()  # according to PySimpleGui documentation
-                            app_window["Multi_status"].update("Unsupported status received", text_color="red")
-                            break
+                            app_window["Multi_status"].update("Multiple transfer interrupted on request",
+                                                              text_color="yellow")
+                            break   # exit for loop
 
                         else:
+                            val_str = str(val)
+                            print(MSP_Obj_database[ObjName] + " " + val_str)
+
                             app_window = app_window.finalize()  # according to PySimpleGui documentation
-                            app_window["Multi_status"].update("OK", text_color="green")
+                            app_window["Multi_current_val"].update(val_str)
+
+                            try:
+                                MySimpleProtocol_transmit(MSP_Obj_database[ObjName] + " " + val_str, "CTRL", "8DF3",
+                                                          "0000", device)  # test
+
+                            except MySimpleProtocolDataLength:
+
+                                app_window = app_window.finalize()  # according to PySimpleGui documentation
+                                app_window["Multi_status"].update("Packet length problem", text_color="red")
+                                interruptTransfer = 1
+                                break
+
+                            except MySimpleProtocolCRC8:
+
+                                app_window = app_window.finalize()  # according to PySimpleGui documentation
+                                app_window["Multi_status"].update("Incorrect CRC-8 received", text_color="red")
+                                interruptTransfer = 1
+                                break
+
+                            except MySimpleProtocolStatusNok:
+
+                                app_window = app_window.finalize()  # according to PySimpleGui documentation
+                                app_window["Multi_status"].update("NOK status received", text_color="red")
+                                interruptTransfer = 1
+                                break
+
+                            except MySimpleProtocolStatusUnsupported:
+
+                                app_window = app_window.finalize()  # according to PySimpleGui documentation
+                                app_window["Multi_status"].update("Unsupported status received", text_color="red")
+                                interruptTransfer = 1
+                                break
+
+                            else:
+                                app_window = app_window.finalize()  # according to PySimpleGui documentation
+                                app_window["Multi_status"].update("OK", text_color="green")
 
                         time.sleep(dwellTime)  # delay period
             else:
