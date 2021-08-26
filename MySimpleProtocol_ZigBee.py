@@ -191,8 +191,18 @@ def Compute_CRC8(data: str, lookUpTable: list, initial_crc: int):
         crc = lookUpTable[xor_in]
 
     result_crc = str(crc)
-    if len(result_crc) < 3:  # if length of CRC-8 is less than 3 characters, add 0 at the beginning
+
+    """
+    for MySimpleProtocol, CRC-8 field is encoded using 3 ASCII characters !!!
+    """
+    if len(result_crc) == 2:  # if length of CRC-8 is equal to 2 characters, add 0 at the beginning
         result_crc = "0" + result_crc
+
+    elif len(result_crc) == 1:  # if length of CRC-8 is equal to one character, add 00 at the beginning
+        result_crc = "00" + result_crc
+
+    elif len(result_crc) == 3:  # if length of CRC-8 is equal to exactly 3 characters, do nothing
+        pass
 
     return result_crc
 
