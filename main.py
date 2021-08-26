@@ -7,7 +7,7 @@ from Help import *  # from Help import everything
 from MySimpleProtocol_ZigBee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.3.4"
+myProjectVersion = "0.3.5"
 
 
 def runApp():
@@ -202,13 +202,20 @@ def runApp():
     app_msp_tab_send_msp_simple_button = sg.Button("SEND (SIMPLE)", pad=((10, 0), (10, 10)))
     app_msp_tab_send_msp_multi_button = sg.Button("SEND (MULTI)", pad=((10, 0), (10, 10)))
 
-    app_msp_tab_trans_simple_status = sg.Multiline("Simple transfer status", size=(20, 2), pad=((10, 10), (10, 10)),
-                                                   justification="center")
+    app_msp_tab_trans_simple_status = sg.Text("Status of simple transfer", size=(15, 2),
+                                              justification="center",
+                                              pad=((10, 10), (10, 0)),
+                                              key="Simple_status")
 
-    app_msp_tab_trans_multi_status = sg.Multiline("Multiple transfer status", size=(20, 2), pad=((10, 10), (10, 10)),
-                                                  justification="center")
+    app_msp_tab_trans_multi_status = sg.Text("Status of multiple transfer", size=(15, 2),
+                                             justification="center",
+                                             pad=((10, 10), (10, 0)),
+                                             key="Multi_status")
 
-    app_msp_tab_trans_multi_currentValue = sg.Output(size=(14, 1), pad=((10, 10), (10, 10)))
+    app_msp_tab_trans_multi_currentValue = sg.Text("Current object value", size=(15, 2),
+                                                   justification="center",
+                                                   pad=((10, 10), (10, 0)),
+                                                   key="Multi_current_val")
 
     app_msp_frame1 = sg.Frame("Objects", layout=[[app_msp_tab_obj_names_text],
                                                  [app_msp_tab_listbox]],
@@ -301,7 +308,7 @@ def runApp():
     app_window = sg.Window('LEGO Technic PC control',
                            app_main_layout,
                            default_element_size=(10, 1),
-                           default_button_element_size=(12, 1), size=(1000, 1000))
+                           default_button_element_size=(12, 1), size=(1000, 850))
 
     # ------ Loop & Process button menu choices ------ #
     while True:
@@ -414,28 +421,36 @@ def runApp():
                                               "0000", device)  # test
 
                 except MySimpleProtocolDataLength:
-                    app_msp_tab_trans_simple_status.update('')  # clear window
-                    app_msp_tab_trans_simple_status.update("Packet length problem",
-                                                           text_color="red")  # update transmission status
+
+                    app_window = app_window.finalize()  # according to PySimpleGui documentation
+                    app_window["Simple_status"].update("Packet length problem", text_color="red")
+                    break
 
                 except MySimpleProtocolCRC8:
-                    app_msp_tab_trans_simple_status.update('')  # clear window
-                    app_msp_tab_trans_simple_status.update("Incorrect CRC-8 received", text_color="red")
+
+                    app_window = app_window.finalize()  # according to PySimpleGui documentation
+                    app_window["Simple_status"].update("Incorrect CRC-8 received", text_color="red")
+                    break
 
                 except MySimpleProtocolStatusNok:
-                    app_msp_tab_trans_simple_status.update('')  # clear window
-                    app_msp_tab_trans_simple_status.update("NOK status received", text_color="red")
+
+                    app_window = app_window.finalize()  # according to PySimpleGui documentation
+                    app_window["Simple_status"].update("NOK status received", text_color="red")
+                    break
 
                 except MySimpleProtocolStatusUnsupported:
-                    app_msp_tab_trans_simple_status.update('')  # clear window
-                    app_msp_tab_trans_simple_status.update("Unsupported status received", text_color="red")
+
+                    app_window = app_window.finalize()  # according to PySimpleGui documentation
+                    app_window["Simple_status"].update("Unsupported status received", text_color="red")
+                    break
 
                 else:
-                    app_msp_tab_trans_simple_status.update('')  # clear window
-                    app_msp_tab_trans_simple_status.update("OK", text_color="green")
+                    app_window = app_window.finalize()  # according to PySimpleGui documentation
+                    app_window["Simple_status"].update("OK", text_color="green")
+
             else:
-                app_msp_tab_trans_simple_status.update('')  # clear window
-                app_msp_tab_trans_simple_status.update("Serial port is not opened !", text_color="yellow")
+                app_window = app_window.finalize()  # according to PySimpleGui documentation
+                app_window["Simple_status"].update("Serial port is not opened !", text_color="yellow")
 
         elif event == "SEND (MULTI)":
 
@@ -455,19 +470,16 @@ def runApp():
 
                 ObjName = ''.join(values["Obj_Name"])  # converts tuple or list or dictionary into string
 
-                app_msp_tab_trans_multi_currentValue.update('')  # clear window
-
                 while loopCount > 0:
 
                     loopCount -= 1
 
-                    for val in range(startVal, stopVal, stepVal):
+                    for val in range(startVal, startVal + stopVal, stepVal):
 
                         val_str = str(val)
 
-                        # show current object value
-                        #   app_msp_tab_trans_multi_currentValue.update(val_str)
-                        print(val_str)
+                        app_window = app_window.finalize()  # according to PySimpleGui documentation
+                        app_window["Multi_current_val"].update(val_str)
 
                         try:
                             MySimpleProtocol_transmit(MSP_Obj_database[ObjName] + " " + val_str, "CTRL", "8DF3",
@@ -475,33 +487,37 @@ def runApp():
                             #   print(MSP_Obj_database[ObjName] + " " + val_str)
 
                         except MySimpleProtocolDataLength:
-                            app_msp_tab_trans_multi_status.update('')
-                            app_msp_tab_trans_multi_status.update("Packet length problem",
-                                                                  text_color="red")  # update transmission status
+
+                            app_window = app_window.finalize()  # according to PySimpleGui documentation
+                            app_window["Multi_status"].update("Packet length problem", text_color="red")
                             break
+
                         except MySimpleProtocolCRC8:
-                            app_msp_tab_trans_multi_status.update('')
-                            app_msp_tab_trans_multi_status.update("Incorrect CRC-8 received", text_color="red")
+
+                            app_window = app_window.finalize()  # according to PySimpleGui documentation
+                            app_window["Multi_status"].update("Incorrect CRC-8 received", text_color="red")
                             break
 
                         except MySimpleProtocolStatusNok:
-                            app_msp_tab_trans_multi_status.update('')
-                            app_msp_tab_trans_multi_status.update("NOK status received", text_color="red")
+
+                            app_window = app_window.finalize()  # according to PySimpleGui documentation
+                            app_window["Multi_status"].update("NOK status received", text_color="red")
                             break
 
                         except MySimpleProtocolStatusUnsupported:
-                            app_msp_tab_trans_multi_status.update('')
-                            app_msp_tab_trans_multi_status.update("Unsupported status received", text_color="red")
+
+                            app_window = app_window.finalize()  # according to PySimpleGui documentation
+                            app_window["Multi_status"].update("Unsupported status received", text_color="red")
                             break
 
                         else:
-                            app_msp_tab_trans_multi_status.update('')
-                            app_msp_tab_trans_multi_status.update("OK", text_color="green")
+                            app_window = app_window.finalize()  # according to PySimpleGui documentation
+                            app_window["Multi_status"].update("OK", text_color="green")
 
                         time.sleep(dwellTime)  # delay period
             else:
-                app_msp_tab_trans_multi_status.update('')
-                app_msp_tab_trans_multi_status.update("Serial port is not opened !", text_color="yellow")
+                app_window = app_window.finalize()  # according to PySimpleGui documentation
+                app_window["Multi_status"].update("Serial port is not opened !", text_color="yellow")
 
     app_window.close()
     del app_window
