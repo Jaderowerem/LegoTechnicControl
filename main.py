@@ -7,7 +7,7 @@ from Help import *  # from Help import everything
 from MySimpleProtocol_ZigBee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.3.5"
+myProjectVersion = "0.3.6"
 
 
 def runApp():
@@ -470,11 +470,17 @@ def runApp():
 
                 ObjName = ''.join(values["Obj_Name"])  # converts tuple or list or dictionary into string
 
+                """for "for" loop, iteration element is being incremented from start until stop value but without 
+                reaching stop value, [start value, stop value) -> one-sided open set,
+                in this case to reach stop value too -> stopVal = stopVal + stepVal
+                """
+                stopVal = stopVal + stepVal
+
                 while loopCount > 0:
 
                     loopCount -= 1
 
-                    for val in range(startVal, startVal + stopVal, stepVal):
+                    for val in range(startVal, stopVal, stepVal):
 
                         val_str = str(val)
 
