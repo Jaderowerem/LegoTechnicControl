@@ -7,7 +7,7 @@ from Help import *  # from Help import everything
 from MySimpleProtocol_ZigBee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.3.12"
+myProjectVersion = "0.3.13"
 
 
 def runApp():
@@ -261,6 +261,11 @@ def runApp():
                                                   pad=((10, 10), (10, 10)),
                                                   key="Multi_statistics6")
 
+    app_msp_tab_trans_multi_progress_text = sg.Text("0 %", size=(5, 1),
+                                                    justification="center",
+                                                    pad=((0, 10), (10, 10)),
+                                                    key="Multi_progress_text")
+
     app_msp_tab_trans_multi_progress = sg.ProgressBar(100, orientation='h', size=(20, 20),
                                                       style="alt", key='Multi_progress_bar',
                                                       pad=((10, 10), (10, 10)))
@@ -277,7 +282,8 @@ def runApp():
                                               vertical_alignment="top")
 
     app_msp_multi_progress_frame = sg.Frame("Transmission progress",
-                                            layout=[[app_msp_tab_trans_multi_progress]],
+                                            layout=[[app_msp_tab_trans_multi_progress,
+                                                     app_msp_tab_trans_multi_progress_text]],
                                             pad=((10, 10), (10, 10)),
                                             border_width=3,
                                             vertical_alignment="top")
@@ -622,13 +628,15 @@ def runApp():
                             break  # exit for loop
 
                         else:
-                            progress = (val / stopVal) * 100  # progress given in [%]
+                            progress = (val / stopVal) * 100  # input for progress bar
                             val_str = str(val)
-                            print(MSP_Obj_database[ObjName] + " " + val_str)
+                            #   print(MSP_Obj_database[ObjName] + " " + val_str)
 
                             app_window = app_window.finalize()  # according to PySimpleGui documentation
                             app_window["Multi_current_val"].update(val_str)
                             app_window["Multi_progress_bar"].update(progress)  # update multiple transmission progress
+                            progress_str = str(int(progress))
+                            app_window["Multi_progress_text"].update(progress_str + " %")
 
                             try:
                                 MySimpleProtocol_transmit(MSP_Obj_database[ObjName] + " " + val_str, "CTRL", "8DF3",
@@ -670,6 +678,11 @@ def runApp():
                                 app_window = app_window.finalize()  # according to PySimpleGui documentation
                                 app_window["Multi_status"].update("OK", text_color="green")
                                 MSP_Statistics["Correct transmissions"] += 1
+
+                                if progress_str == "99":
+                                    #   app_window = app_window.finalize()
+                                    app_window["Multi_progress_bar"].update(100)
+                                    app_window["Multi_progress_text"].update("100 %")
 
                         time.sleep(dwellTime)  # delay period
 
