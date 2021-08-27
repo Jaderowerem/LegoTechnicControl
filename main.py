@@ -7,7 +7,7 @@ from Help import *  # from Help import everything
 from MySimpleProtocol_ZigBee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.3.10"
+myProjectVersion = "0.3.12"
 
 
 def runApp():
@@ -183,88 +183,181 @@ def runApp():
     """
     MSP UI
     """
-    app_msp_tab_obj_names_text = sg.Text("Object name", pad=((10, 0), (10, 0)))
-    app_msp_tab_obj_value_text = sg.Text("Insert object value", pad=((10, 0), (10, 0)))
-
     app_msp_tab_obj_names_label_val = ['test1Obj', 'test2Obj']  # the reflection of MSP_Obj_database keys
 
-    app_msp_tab_simple_input = sg.Input(key='Simple_obj_value', size=(14, 1), pad=((10, 0), (0, 0)))
+    app_msp_tab_simple_input = sg.Input(key='Simple_obj_value', size=(14, 1), tooltip="Insert here object value which"
+                                                                                      " will be used for simple "
+                                                                                      "transfer",
+                                        pad=((10, 10), (10, 10)))
 
-    app_msp_tab_multi_start = sg.Input(key='Multi_start_obj_value', size=(14, 1), pad=((10, 10), (10, 10)))
-    app_msp_tab_multi_stop = sg.Input(key='Multi_stop_obj_value', size=(14, 1), pad=((10, 10), (10, 10)))
-    app_msp_tab_multi_step = sg.Input(key='Multi_step_obj_value', size=(14, 1), pad=((10, 10), (10, 10)))
-    app_msp_tab_multi_loop = sg.Input(key='Multi_loop', size=(6, 1), pad=((10, 10), (10, 10)))
-    app_msp_tab_multi_dwellTime = sg.Input(key='Multi_dwellTime', size=(6, 1), pad=((10, 10), (10, 10)))
+    app_msp_tab_multi_start = sg.Input(key='Multi_start_obj_value', size=(14, 1), tooltip="Object value which will be"
+                                                                                          " transmitted first",
+                                       pad=((10, 10), (10, 10)))
+
+    app_msp_tab_multi_stop = sg.Input(key='Multi_stop_obj_value', size=(14, 1), tooltip="Object value which "
+                                                                                        "will be sent as the last one",
+                                      pad=((10, 10), (10, 10)))
+    app_msp_tab_multi_step = sg.Input(key='Multi_step_obj_value', size=(14, 1), tooltip="Incrementation step",
+                                      pad=((10, 10), (10, 10)))
+
+    app_msp_tab_multi_loop = sg.Input(key='Multi_loop', size=(10, 1), tooltip="Number of repetitions [start:stop:step]",
+                                      pad=((10, 10), (10, 10)))
+
+    app_msp_tab_multi_dwellTime = sg.Input(key='Multi_dwellTime', size=(10, 1), tooltip="Delay time between "
+                                                                                        "transmissions",
+                                           pad=((10, 10), (10, 10)))
 
     app_msp_tab_listbox = sg.Listbox(app_msp_tab_obj_names_label_val, default_values=["test1Obj"], size=(25, 5),
-                                     enable_events=True, key="Obj_Name", pad=((10, 10), (0, 10)))
+                                     enable_events=True, key="Obj_Name", pad=((10, 10), (10, 10)))
 
-    app_msp_tab_send_msp_simple_button = sg.Button("SEND (SIMPLE)", pad=((10, 0), (10, 10)))
+    app_msp_tab_send_msp_simple_button = sg.Button("SEND (SIMPLE)", pad=((0, 0), (10, 10)))
     app_msp_tab_send_msp_multi_button = sg.Button("SEND (MULTI)", pad=((10, 0), (10, 10)))
     app_msp_tab_interrupt_msp_multi_button = sg.Button("INTERRUPT (MULTI)", pad=((10, 0), (10, 10)))
 
-    app_msp_tab_trans_simple_status = sg.Text("Simple transfer status", size=(15, 3),
+    app_msp_tab_trans_simple_status = sg.Text("", size=(35, 1),
                                               justification="center",
-                                              pad=((10, 10), (10, 0)),
+                                              pad=((10, 10), (10, 10)),
                                               key="Simple_status")
 
-    app_msp_tab_trans_multi_status = sg.Text("Multiple transfer status", size=(15, 3),
+    app_msp_tab_trans_multi_status = sg.Text("", size=(35, 1),
                                              justification="center",
-                                             pad=((10, 10), (10, 0)),
+                                             pad=((10, 10), (10, 10)),
                                              key="Multi_status")
 
-    app_msp_tab_trans_multi_currentValue = sg.Text("Current object value", size=(15, 1),
+    app_msp_tab_trans_multi_currentValue = sg.Text("", size=(15, 1),
                                                    justification="center",
-                                                   pad=((10, 10), (10, 0)),
-                                                   key="Multi_current_val")
+                                                   pad=((10, 10), (10, 10)),
+                                                   key="Multi_current_val",
+                                                   grab=True,
+                                                   tooltip="Here you'll find current object value")
 
-    app_msp_frame1 = sg.Frame("Objects", layout=[[app_msp_tab_obj_names_text],
-                                                 [app_msp_tab_listbox]],
-                              pad=((10, 10), (10, 0)),
-                              vertical_alignment="top")
+    app_msp_tab_trans_multi_statistics1 = sg.Text("0", size=(30, 1),
+                                                  justification="center",
+                                                  pad=((10, 10), (10, 10)),
+                                                  key="Multi_statistics1")
 
-    app_msp_simple_frame = sg.Frame("Simple transfer", layout=[[app_msp_tab_obj_value_text],
-                                                               [app_msp_tab_simple_input,
+    app_msp_tab_trans_multi_statistics2 = sg.Text("0", size=(30, 1),
+                                                  justification="center",
+                                                  pad=((10, 10), (10, 10)),
+                                                  key="Multi_statistics2")
+
+    app_msp_tab_trans_multi_statistics3 = sg.Text("0", size=(30, 1),
+                                                  justification="center",
+                                                  pad=((10, 10), (10, 10)),
+                                                  key="Multi_statistics3")
+
+    app_msp_tab_trans_multi_statistics4 = sg.Text("0", size=(30, 1),
+                                                  justification="center",
+                                                  pad=((10, 10), (10, 10)),
+                                                  key="Multi_statistics4")
+
+    app_msp_tab_trans_multi_statistics5 = sg.Text("0", size=(30, 1),
+                                                  justification="center",
+                                                  pad=((10, 10), (10, 10)),
+                                                  key="Multi_statistics5")
+
+    app_msp_tab_trans_multi_statistics6 = sg.Text("0", size=(30, 1),
+                                                  justification="center",
+                                                  pad=((10, 10), (10, 10)),
+                                                  key="Multi_statistics6")
+
+    app_msp_tab_trans_multi_progress = sg.ProgressBar(100, orientation='h', size=(20, 20),
+                                                      style="alt", key='Multi_progress_bar',
+                                                      pad=((10, 10), (10, 10)))
+
+    app_msp_multi_statistics_frame = sg.Frame("Transmission statistics",
+                                              layout=[[app_msp_tab_trans_multi_statistics1],
+                                                      [app_msp_tab_trans_multi_statistics2],
+                                                      [app_msp_tab_trans_multi_statistics3],
+                                                      [app_msp_tab_trans_multi_statistics4],
+                                                      [app_msp_tab_trans_multi_statistics5],
+                                                      [app_msp_tab_trans_multi_statistics6]],
+                                              pad=((10, 10), (10, 10)),
+                                              border_width=3,
+                                              vertical_alignment="top")
+
+    app_msp_multi_progress_frame = sg.Frame("Transmission progress",
+                                            layout=[[app_msp_tab_trans_multi_progress]],
+                                            pad=((10, 10), (10, 10)),
+                                            border_width=3,
+                                            vertical_alignment="top")
+
+    app_msp_simple_object_val_frame = sg.Frame("Insert object value", layout=[[app_msp_tab_simple_input]],
+                                               pad=((10, 10), (10, 10)),
+                                               border_width=3,
+                                               vertical_alignment="top")
+
+    app_msp_objects_frame = sg.Frame("Objects", layout=[[app_msp_tab_listbox],
+                                                        [app_msp_multi_statistics_frame]],
+                                     pad=((10, 10), (10, 10)),
+                                     border_width=6,
+                                     vertical_alignment="top")
+
+    app_msp_simple_status_frame = sg.Frame("Simple transfer status", layout=[[app_msp_tab_trans_simple_status]],
+                                           pad=((10, 10), (10, 10)),
+                                           border_width=3,
+                                           vertical_alignment="top")
+
+    app_msp_simple_frame = sg.Frame("Simple transfer", layout=[[app_msp_simple_object_val_frame,
                                                                 app_msp_tab_send_msp_simple_button,
-                                                                app_msp_tab_trans_simple_status]],
+                                                                app_msp_simple_status_frame]],
                                     pad=((10, 10), (10, 10)),
+                                    border_width=6,
                                     vertical_alignment="top")
 
     app_msp_multi_start_frame = sg.Frame("Start value", layout=[[app_msp_tab_multi_start]],
                                          pad=((10, 10), (10, 10)),
+                                         border_width=3,
                                          vertical_alignment="top")
 
     app_msp_multi_stop_frame = sg.Frame("Stop value", layout=[[app_msp_tab_multi_stop]],
                                         pad=((10, 10), (10, 10)),
+                                        border_width=3,
                                         vertical_alignment="top")
 
     app_msp_multi_step_frame = sg.Frame("Step", layout=[[app_msp_tab_multi_step]],
                                         pad=((10, 10), (10, 10)),
+                                        border_width=3,
                                         vertical_alignment="top")
 
     app_msp_multi_loop_frame = sg.Frame("Loop count", layout=[[app_msp_tab_multi_loop]],
                                         pad=((10, 10), (10, 10)),
+                                        border_width=3,
                                         vertical_alignment="top")
 
     app_msp_multi_dwellTime_frame = sg.Frame("Dwell time [sec]", layout=[[app_msp_tab_multi_dwellTime]],
                                              pad=((10, 10), (10, 10)),
+                                             border_width=3,
                                              vertical_alignment="top")
 
+    app_msp_multi_status_frame = sg.Frame("Multiple transfer status", layout=[[app_msp_tab_trans_multi_status]],
+                                          pad=((10, 10), (10, 10)),
+                                          border_width=3,
+                                          vertical_alignment="top")
+
+    app_msp_current_val_frame = sg.Frame("Current object value", layout=[[app_msp_tab_trans_multi_currentValue]],
+                                         pad=((10, 10), (10, 10)),
+                                         border_width=3,
+                                         vertical_alignment="top")
+
     app_msp_multi_frame = sg.Frame("Multiple transfer", layout=[[app_msp_multi_start_frame, app_msp_multi_stop_frame,
-                                                                 app_msp_multi_step_frame],
-                                                                [app_msp_multi_loop_frame,
-                                                                 app_msp_multi_dwellTime_frame,
-                                                                 app_msp_tab_send_msp_multi_button,
-                                                                 app_msp_tab_interrupt_msp_multi_button,
-                                                                 app_msp_tab_trans_multi_status],
-                                                                [app_msp_tab_trans_multi_currentValue]
-                                                                ],
+                                                                 app_msp_multi_step_frame, app_msp_multi_loop_frame,
+                                                                 app_msp_multi_dwellTime_frame],
+                                                                [
+                                                                    app_msp_tab_send_msp_multi_button,
+                                                                    app_msp_tab_interrupt_msp_multi_button,
+                                                                ], [app_msp_current_val_frame,
+                                                                    app_msp_multi_progress_frame,
+                                                                    app_msp_multi_status_frame]],
                                    pad=((10, 10), (10, 10)),
+                                   border_width=6,
                                    vertical_alignment="top")
 
-    app_msp_main_frame = sg.Frame("MySimpleProtocol (MSP)", layout=[[app_msp_simple_frame], [app_msp_multi_frame]],
-                                  pad=((10, 10), (10, 10)),
-                                  vertical_alignment="top")
+    app_msp_simple_multi_frame = sg.Frame("MySimpleProtocol (MSP)", layout=[[app_msp_simple_frame],
+                                                                            [app_msp_multi_frame]],
+                                          pad=((10, 10), (10, 10)),
+                                          border_width=6,
+                                          vertical_alignment="top")
     """
     2.
     """
@@ -277,7 +370,7 @@ def runApp():
     app_zigbee_tab_layout = [[app_zigbee_conf_frame],
                              [app_zigbee_addr_frame, app_zigbee_commands_frame]]
 
-    app_msp_tab_layout = [[app_msp_frame1, app_msp_main_frame]]
+    app_msp_tab_layout = [[app_msp_objects_frame, app_msp_simple_multi_frame]]
 
     """
     3.
@@ -310,7 +403,7 @@ def runApp():
     app_window = sg.Window('LEGO Technic PC control',
                            app_main_layout,
                            default_element_size=(10, 1),
-                           default_button_element_size=(12, 1), size=(1200, 900))
+                           default_button_element_size=(12, 1), size=(1600, 900))
 
     # ------ Loop & Process button menu choices ------ #
     while True:
@@ -479,16 +572,46 @@ def runApp():
                 stopVal = stopVal + stepVal
                 interruptTransfer = 0
 
+                """
+                objects used for statistics purpose to monitor transmission
+                """
+                MSP_Statistics["NOK status received"] = 0
+                MSP_Statistics["Unsupported status received"] = 0
+                MSP_Statistics["Incorrect CRC-8"] = 0
+                MSP_Statistics["Packet length issue"] = 0
+                MSP_Statistics["Correct transmissions"] = 0
+                MSP_Statistics["Total number of transmissions"] = 0
+
+                app_window = app_window.finalize()
+
+                app_window["Multi_statistics1"].update("NOK status received: " +
+                                                       str(MSP_Statistics["NOK status received"]))
+
+                app_window["Multi_statistics2"].update("Unsupported status received: " +
+                                                       str(MSP_Statistics["Unsupported status received"]))
+
+                app_window["Multi_statistics3"].update("Incorrect CRC-8: " +
+                                                       str(MSP_Statistics["Incorrect CRC-8"]))
+
+                app_window["Multi_statistics4"].update("Packet length issue: " +
+                                                       str(MSP_Statistics["Packet length issue"]))
+
+                app_window["Multi_statistics5"].update("Correct transmissions: " +
+                                                       str(MSP_Statistics["Correct transmissions"]))
+
+                app_window["Multi_statistics6"].update("Total number of transmissions: " +
+                                                       str(MSP_Statistics["Total number of transmissions"]))
+
                 while loopCount > 0 and interruptTransfer != 1:
 
                     loopCount -= 1
 
                     for val in range(startVal, stopVal, stepVal):
 
+                        MSP_Statistics["Total number of transmissions"] += 1
                         """
                         check if interruption of multiple transfer occurred or it can be continued
                         """
-
                         inter_event, inter_val = app_window.read(timeout=1)
 
                         if inter_event == "INTERRUPT (MULTI)":
@@ -496,14 +619,16 @@ def runApp():
                             app_window = app_window.finalize()  # according to PySimpleGui documentation
                             app_window["Multi_status"].update("Multiple transfer interrupted on request",
                                                               text_color="yellow")
-                            break   # exit for loop
+                            break  # exit for loop
 
                         else:
+                            progress = (val / stopVal) * 100  # progress given in [%]
                             val_str = str(val)
                             print(MSP_Obj_database[ObjName] + " " + val_str)
 
                             app_window = app_window.finalize()  # according to PySimpleGui documentation
                             app_window["Multi_current_val"].update(val_str)
+                            app_window["Multi_progress_bar"].update(progress)  # update multiple transmission progress
 
                             try:
                                 MySimpleProtocol_transmit(MSP_Obj_database[ObjName] + " " + val_str, "CTRL", "8DF3",
@@ -513,6 +638,7 @@ def runApp():
 
                                 app_window = app_window.finalize()  # according to PySimpleGui documentation
                                 app_window["Multi_status"].update("Packet length problem", text_color="red")
+                                MSP_Statistics["Packet length issue"] += 1
                                 interruptTransfer = 1
                                 break
 
@@ -520,6 +646,7 @@ def runApp():
 
                                 app_window = app_window.finalize()  # according to PySimpleGui documentation
                                 app_window["Multi_status"].update("Incorrect CRC-8 received", text_color="red")
+                                MSP_Statistics["Incorrect CRC-8"] += 1
                                 interruptTransfer = 1
                                 break
 
@@ -527,6 +654,7 @@ def runApp():
 
                                 app_window = app_window.finalize()  # according to PySimpleGui documentation
                                 app_window["Multi_status"].update("NOK status received", text_color="red")
+                                MSP_Statistics["NOK status received"] += 1
                                 interruptTransfer = 1
                                 break
 
@@ -534,20 +662,40 @@ def runApp():
 
                                 app_window = app_window.finalize()  # according to PySimpleGui documentation
                                 app_window["Multi_status"].update("Unsupported status received", text_color="red")
+                                MSP_Statistics["Unsupported status received"] += 1
                                 interruptTransfer = 1
                                 break
 
                             else:
                                 app_window = app_window.finalize()  # according to PySimpleGui documentation
                                 app_window["Multi_status"].update("OK", text_color="green")
+                                MSP_Statistics["Correct transmissions"] += 1
 
                         time.sleep(dwellTime)  # delay period
+
+                    # here put the code to print statistics
+                    app_window = app_window.finalize()
+                    app_window["Multi_statistics1"].update("NOK status received: " +
+                                                           str(MSP_Statistics["NOK status received"]))
+
+                    app_window["Multi_statistics2"].update("Unsupported status received: " +
+                                                           str(MSP_Statistics["Unsupported status received"]))
+
+                    app_window["Multi_statistics3"].update("Incorrect CRC-8: " +
+                                                           str(MSP_Statistics["Incorrect CRC-8"]))
+
+                    app_window["Multi_statistics4"].update("Packet length issue: " +
+                                                           str(MSP_Statistics["Packet length issue"]))
+
+                    app_window["Multi_statistics5"].update("Correct transmissions: " +
+                                                           str(MSP_Statistics["Correct transmissions"]))
+
+                    app_window["Multi_statistics6"].update("Total number of transmissions: " +
+                                                           str(MSP_Statistics["Total number of transmissions"]))
 
             else:
                 app_window = app_window.finalize()  # according to PySimpleGui documentation
                 app_window["Multi_status"].update("Serial port is not opened !", text_color="yellow")
-
-            print("end of while loop")
 
     app_window.close()
     del app_window

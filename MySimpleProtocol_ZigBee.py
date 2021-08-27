@@ -10,6 +10,16 @@ MSP_Obj_database = {  # dictionary which represents database to store all object
     "test2Obj": "11"
 }
 
+MSP_Statistics = {  # dictionary which stores all MySimpleProtocol statistics objects
+
+    "NOK status received": 0,  # incremented when NOK status received, set to zero for new GUI event
+    "Unsupported status received": 0,   # incremented when unsupported status received, set to zero for new GUI event
+    "Incorrect CRC-8": 0,    # incremented for incorrect CRC-8, set to zero for new GUI event
+    "Packet length issue": 0,    # incremented for occurrence of packet length issue, set to zero for new GUI event
+    "Correct transmissions": 0,     # incremented for successful transmissions, set to zero for new GUI event
+    "Total number of transmissions": 0  # total number of transmissions, set to zero for new GUI event
+}
+
 """
 MySimpleProtocol exceptions definition
 """
@@ -360,9 +370,8 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, destination_add
                     # Send txd_packet via UART to ZigBee module
                     serial_port_send_command(uart[uart_device], txd_packet)
 
-                    """
-                    4)  Check feedback from receiver, if CRC-8 and status will be fine, transmission ends up and is valid
-                    """
+                    """4)  Check feedback from receiver, if CRC-8 and status will be fine, transmission ends up and 
+                    is valid """
                     rxd_bytes = uart[uart_device].read(12)
                     rxd_packet_str = rxd_bytes.decode()  # !!!
 
