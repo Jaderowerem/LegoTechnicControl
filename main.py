@@ -1,13 +1,9 @@
 import time
 import os.path
-
-from Settings import *  # include all namespace from Settings.py file
-from Tools import *  # from Tools import everything
-from Help import *  # from Help import everything
 from MySimpleProtocol_ZigBee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.3.13"
+myProjectVersion = "0.3.14"
 
 
 def runApp():
@@ -24,7 +20,6 @@ def runApp():
     # ------ Menu Definition ------ #
     menu_def = [['&File', ['Clear window', 'Settings', 'Exit']],
                 ['&View'],
-                ['&Toolbar', ['none', 'none', 'none']],
                 ['&Help', '&About', '&Manual'], ]
 
     # ------ GUI Definition ------ #
