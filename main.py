@@ -3,7 +3,7 @@ import os.path
 from MySimpleProtocol_ZigBee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.3.14"
+myProjectVersion = "0.3.15"
 
 
 def runApp():
@@ -520,25 +520,21 @@ def runApp():
 
                     app_window = app_window.finalize()  # according to PySimpleGui documentation
                     app_window["Simple_status"].update("Packet length problem", text_color="red")
-                    break
 
                 except MySimpleProtocolCRC8:
 
                     app_window = app_window.finalize()  # according to PySimpleGui documentation
                     app_window["Simple_status"].update("Incorrect CRC-8 received", text_color="red")
-                    break
 
                 except MySimpleProtocolStatusNok:
 
                     app_window = app_window.finalize()  # according to PySimpleGui documentation
                     app_window["Simple_status"].update("NOK status received", text_color="red")
-                    break
 
                 except MySimpleProtocolStatusUnsupported:
 
                     app_window = app_window.finalize()  # according to PySimpleGui documentation
                     app_window["Simple_status"].update("Unsupported status received", text_color="red")
-                    break
 
                 else:
                     app_window = app_window.finalize()  # according to PySimpleGui documentation
@@ -557,12 +553,6 @@ def runApp():
                 startVal = int(app_msp_tab_multi_start.get())
                 stopVal = int(app_msp_tab_multi_stop.get())
                 stepVal = int(app_msp_tab_multi_step.get())
-
-                #   print("loopCount: ", loopCount)
-                #   print("dwellTime: ", dwellTime)
-                #   print("startVal: ", startVal)
-                #   print("stopVal: ", stopVal)
-                #   print("stepVal : ", stepVal)
 
                 ObjName = ''.join(values["Obj_Name"])  # converts tuple or list or dictionary into string
 
@@ -643,7 +633,7 @@ def runApp():
                                 app_window["Multi_status"].update("Packet length problem", text_color="red")
                                 MSP_Statistics["Packet length issue"] += 1
                                 interruptTransfer = 1
-                                break
+                                break   # exit for loop
 
                             except MySimpleProtocolCRC8:
 
@@ -651,7 +641,7 @@ def runApp():
                                 app_window["Multi_status"].update("Incorrect CRC-8 received", text_color="red")
                                 MSP_Statistics["Incorrect CRC-8"] += 1
                                 interruptTransfer = 1
-                                break
+                                break   # exit for loop
 
                             except MySimpleProtocolStatusNok:
 
@@ -659,7 +649,7 @@ def runApp():
                                 app_window["Multi_status"].update("NOK status received", text_color="red")
                                 MSP_Statistics["NOK status received"] += 1
                                 interruptTransfer = 1
-                                break
+                                break   # exit for loop
 
                             except MySimpleProtocolStatusUnsupported:
 
@@ -667,7 +657,7 @@ def runApp():
                                 app_window["Multi_status"].update("Unsupported status received", text_color="red")
                                 MSP_Statistics["Unsupported status received"] += 1
                                 interruptTransfer = 1
-                                break
+                                break   # exit for loop
 
                             else:
                                 app_window = app_window.finalize()  # according to PySimpleGui documentation
