@@ -3,7 +3,7 @@ import os.path
 from MySimpleProtocol_ZigBee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.3.15"
+myProjectVersion = "0.3.16"
 
 
 def runApp():
