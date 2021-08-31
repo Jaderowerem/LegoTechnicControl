@@ -307,7 +307,7 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, destination_add
         elif Data_length >= 100:
             Encoded_Data_length = str(Data_length)  # max 999 B can be transmitted !!!
 
-        print("Encoded data length: ", Encoded_Data_length)
+        # print("Encoded data length: ", Encoded_Data_length)
 
         if transmission_type == "CTRL":
             txd_packet = source_addr + " " + "CTRL" + " " + Encoded_Data_length + " "
@@ -322,7 +322,7 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, destination_add
 
             txd_packet = "P2P " + destination_addr + " " + txd_packet + packet_CRC8
 
-            print("txd packet: ", txd_packet)
+            # print("txd packet: ", txd_packet)
 
             # Send txd_packet via UART to ZigBee module
             serial_port_send_command(uart[uart_device], txd_packet)
@@ -333,7 +333,7 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, destination_add
         rxd_bytes = uart[uart_device].read(12)
         rxd_packet_str = rxd_bytes.decode()  # !!!
 
-        print("rxd packet_str: ", rxd_packet_str)
+        # print("rxd packet_str: ", rxd_packet_str)
 
         if len(rxd_packet_str) != 12:
 
@@ -365,7 +365,7 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, destination_add
                     # prepare packet
                     txd_packet = "P2P " + destination_addr + " " + txd_packet + packet_CRC8
 
-                    print("txd data packet: ", txd_packet)
+                    # print("txd data packet: ", txd_packet)
 
                     # Send txd_packet via UART to ZigBee module
                     serial_port_send_command(uart[uart_device], txd_packet)
@@ -375,7 +375,7 @@ def MySimpleProtocol_transmit(data: str, transmission_type: str, destination_add
                     rxd_bytes = uart[uart_device].read(12)
                     rxd_packet_str = rxd_bytes.decode()  # !!!
 
-                    print("rxd packet_str (2nd): ", rxd_packet_str)
+                    # print("rxd packet_str (2nd): ", rxd_packet_str)
 
                     if len(rxd_packet_str) != 12:
 
