@@ -4,10 +4,31 @@ from Settings import *
 from SerialPort import *
 
 CRC8_lookuptable = []  # a global list which will store generated CRC-8
+
 MSP_Obj_database = {  # dictionary which represents database to store all objects
 
     "test1Obj": "10",
-    "test2Obj": "11"
+    "test2Obj": "11",
+
+    "M1_PWMDutyCycle": "12",
+    "M2_PWMDutyCycle": "13",
+    "M3_PWMDutyCycle": "14",
+    "M4_PWMDutyCycle": "15",
+    "M5_PWMDutyCycle": "16",
+    "M1_OnOff": "17",
+    "M2_OnOff": "18",
+    "M3_OnOff": "19",
+    "M4_OnOff": "20",
+    "M5_OnOff": "21",
+    "M1_Direction": "22",
+    "M2_Direction": "23",
+    "M3_Direction": "24",
+    "M4_Direction": "25",
+    "M5_Direction": "26",
+    "LED1_PWMDutyCycle": "26",
+    "LED2_PWMDutyCycle": "27",
+    "LED1_OnOff": "28",
+    "LED2_OnOff": "29"
 }
 
 MSP_Statistics = {  # dictionary which stores all MySimpleProtocol statistics objects

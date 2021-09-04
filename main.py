@@ -3,7 +3,7 @@ import os.path
 from MySimpleProtocol_ZigBee import *  # from Zigbee import everything
 import PySimpleGUI as sg
 
-myProjectVersion = "0.3.17"
+myProjectVersion = "0.3.18"
 
 
 def runApp():
@@ -178,7 +178,15 @@ def runApp():
     """
     MSP UI
     """
-    app_msp_tab_obj_names_label_val = ['test1Obj', 'test2Obj']  # the reflection of MSP_Obj_database keys
+    # the reflection of MSP_Obj_database keys
+
+    app_msp_tab_obj_names_label_val = ["test1Obj", "test2Obj", "M1_PWMDutyCycle",
+                                       "M2_PWMDutyCycle", "M3_PWMDutyCycle",
+                                       "M4_PWMDutyCycle", "M5_PWMDutyCycle", "M1_OnOff",
+                                       "M2_OnOff", "M3_OnOff", "M4_OnOff", "M5_OnOff",
+                                       "M1_Direction", "M2_Direction", "M3_Direction",
+                                       "M4_Direction", "M5_Direction", "LED1_PWMDutyCycle",
+                                       "LED2_PWMDutyCycle", "LED1_OnOff", "LED2_OnOff"]
 
     app_msp_tab_simple_input = sg.Input(key='Simple_obj_value', size=(14, 1), tooltip="Insert here object value which"
                                                                                       " will be used for simple "
